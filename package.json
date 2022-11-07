@@ -1,0 +1,17 @@
+{
+  "name": "breadbot",
+  "version": "1.0.0",
+  "description": "A very bready Discord bot",
+  "main": "breadbot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bradley Bickford",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.27.0"
+  }
+}
