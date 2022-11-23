@@ -3,22 +3,41 @@ const path = require('node:path');
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
 const { token } = require('./config.json');
 
+const getAllFiles = function(directoryPath, arrayOfFiles) {
+	const files = fs.readdirSync(directoryPath);
+
+	arrayOfFiles = arrayOfFiles || [];
+
+	files.forEach(file => {
+		if (fs.statSync(directoryPath + path.sep + file).isDirectory()) {
+			arrayOfFiles = getAllFiles(directoryPath + path.sep + file, arrayOfFiles);
+		}
+		else {
+			arrayOfFiles.push(path.join(__dirname, directoryPath, path.sep, file));
+		}
+	});
+
+	return arrayOfFiles;
+};
+
+const allFiles = [];
+getAllFiles('.' + path.sep + 'commands', allFiles);
+
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.commands = new Collection();
 
-const commandsPath = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+const commandFiles = allFiles.filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
-	const filePath = path.join(commandsPath, file);
-	const command = require(filePath);
+	const command = require(file);
 
 	if ('data' in command && 'execute' in command) {
 		client.commands.set(command.data.name, command);
+		console.log(`[INFO] Loaded command at ${file}`);
 	}
 	else {
-		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+		console.log(`[WARNING] The command at ${file} is missing a required "data" or "execute" property.`);
 	}
 }
 
