@@ -17,8 +17,14 @@ async function main() {
 		auth: jwtClient,
 	});
 
-	const response = calendar.calendarList.list({});
-	console.log('Output: ' + response.data);
+	calendar.calendarList.list({}, (err, res) => {
+		if (err) {
+			console.log('[ERROR]');
+			console.log(err.errors);
+			return;
+		}
+		console.log(res.data.items.map(x => x.summary));
+	});
 }
 
 main().catch(e => {

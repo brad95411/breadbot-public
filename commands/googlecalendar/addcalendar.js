@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { google } = require('googleapis');
 const { googlePrivateKey, googleClientEmail, googleProjectNumber } = require('../../config.json');
+const { stdout } = require('node:process');
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 
 module.exports = {
@@ -20,11 +21,10 @@ module.exports = {
 		await interaction.deferReply({ ephemeral: true });
 
 		const name = interaction.options.getString('name');
-		const description = interaction.options.getString('description');
 
 		const jwtClient = new google.auth.JWT(
 			googleClientEmail,
-			null,
+			'./keyfile.json',
 			googlePrivateKey,
 			SCOPES,
 		);
@@ -35,11 +35,21 @@ module.exports = {
 			auth: jwtClient,
 		});
 
-		calendar.calendarList.insert({
-			'summary': name,
-			'description': description,
-		});
-
-		await interaction.editReply('New Calendar ' + name + ' Created');
+		calendar.calendars.insert({
+			resource: {
+				summary: name,
+			},
+		},
+		// eslint-disable-next-line no-unused-vars
+		async (err, res) => {
+			if (err) {
+				await interaction.editReply('Failed to create calendar ' + name + '\nAsk an Admin to check Breadbot console');
+				stdout.write('[ERROR]: ');
+				console.log(err.errors);
+				return;
+			}
+			await interaction.editReply('New Calendar ' + name + ' Created');
+		},
+		);
 	},
 };
