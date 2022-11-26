@@ -43,7 +43,7 @@ module.exports = {
 		// eslint-disable-next-line no-unused-vars
 		async (err, res) => {
 			if (err) {
-				await interaction.editReply('Failed to create calendar ' + name + '\nAsk an Admin to check Breadbot console');
+				await interaction.editReply('Failed to create calendar ' + name + '\nAsk Bradley to check Breadbot console');
 				stdout.write('[ERROR]: ');
 				console.log(err.errors);
 				return;

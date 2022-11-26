@@ -32,7 +32,12 @@ const commandFiles = allFiles.filter(file => file.endsWith('.js'));
 // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
 for (const file of commandFiles) {
 	const command = require(`${file}`);
-	commands.push(command.data.toJSON());
+	if ('data' in command && 'execute' in command) {
+		commands.push(command.data.toJSON());
+	}
+	else {
+		console.log(`Skipping ${file} as it is missing one or more required exported fields`);
+	}
 }
 
 // Construct and prepare an instance of the REST module
