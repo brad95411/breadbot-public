@@ -1,8 +1,5 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { google } = require('googleapis');
-const { googlePrivateKey, googleClientEmail, googleProjectNumber } = require('../../config.json');
-const { stdout } = require('node:process');
-const SCOPES = ['https://www.googleapis.com/auth/calendar'];
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { addCalendar } = require('../../utilities/googlecalendar.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -22,34 +19,13 @@ module.exports = {
 
 		const name = interaction.options.getString('name');
 
-		const jwtClient = new google.auth.JWT(
-			googleClientEmail,
-			'./keyfile.json',
-			googlePrivateKey,
-			SCOPES,
-		);
-
-		const calendar = new google.calendar({
-			version: 'v3',
-			project: googleProjectNumber,
-			auth: jwtClient,
-		});
-
-		calendar.calendars.insert({
-			resource: {
-				summary: name,
-			},
-		},
 		// eslint-disable-next-line no-unused-vars
-		async (err, res) => {
-			if (err) {
-				await interaction.editReply('Failed to create calendar ' + name + '\nAsk Bradley to check Breadbot console');
-				stdout.write('[ERROR]: ');
-				console.log(err.errors);
-				return;
-			}
-			await interaction.editReply('New Calendar ' + name + ' Created');
-		},
-		);
+		addCalendar(name, async (success, message, extra) => {
+			const embedResponse = new EmbedBuilder()
+				.setColor(success ? 0x00FF00 : 0xFF0000)
+				.setTitle(message);
+
+			await interaction.editReply({ embeds: [ embedResponse ] });
+		});
 	},
 };

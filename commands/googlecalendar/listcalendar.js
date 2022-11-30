@@ -1,8 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { google } = require('googleapis');
-const { googlePrivateKey, googleClientEmail, googleProjectNumber } = require('../../config.json');
+const { getListOfCalendars } = require('../../utilities/googlecalendar');
 const { stdout } = require('node:process');
-const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -11,20 +9,7 @@ module.exports = {
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
 
-		const jwtClient = new google.auth.JWT(
-			googleClientEmail,
-			'./keyfile.json',
-			googlePrivateKey,
-			SCOPES,
-		);
-
-		const calendar = new google.calendar({
-			version: 'v3',
-			project: googleProjectNumber,
-			auth: jwtClient,
-		});
-
-		calendar.calendarList.list({}, async (err, res) => {
+		getListOfCalendars({}, async (err, res) => {
 			if (err) {
 				const errorEmbed = new EmbedBuilder()
 					.setColor(0xFF0000)
