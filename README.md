@@ -9,13 +9,13 @@ In all seriousness, BreadBot is my first real attempt at a Discord bot. I'm writ
 I have a subset of features that I want it to have before I call it "production ready" and a set of features that I want if I'm feeling adventurous and want to put in a lot of work. 
 
 "Production Ready" Features
-- [] Google Calendar Integration for Event Management
-    - [] Create/Manage/Remove Events and Calendars
-    - [] Calendar Announcements for Upcoming Events
-- [] Poll Creation and Results Announcements
-- [] Conversation Archiving (May be Removed)
+- [ ] Google Calendar Integration for Event Management
+    - [ ] Create/Manage/Remove Events and Calendars
+    - [ ] Calendar Announcements for Upcoming Events
+- [ ] Poll Creation and Results Announcements
+- [ ] Conversation Archiving (May be Removed)
 
 "Adventurous (Lots of Work)" Features
-- [] BreadBot Voice Chat Hall Monitor
-- [] Breadle (BreadBot Idle Bread Baking Game)
-- [] BreadBot Calendar Send To Email
+- [ ] BreadBot Voice Chat Hall Monitor
+- [ ] Breadle (BreadBot Idle Bread Baking Game)
+- [ ] BreadBot Calendar Send To Email
