@@ -21,14 +21,9 @@ async function getCalendarReference() {
 async function doesCalendarExist(calendarName) {
 	const calendarReference = await getCalendarReference();
 	const listResults = await calendarReference.calendarList.list({});
-	console.log(listResults);
-	console.log(listResults.data.items);
 
 	for (const item of listResults.data.items) {
-		console.log(item);
-		console.log('[DEBUG]: Calendar Item Summary: ' + item.summary);
 		if (item.summary === calendarName) {
-			console.log('[DEBUG]: The previous item is causing doesCalendarExist to return true');
 			return item;
 		}
 	}
@@ -69,16 +64,14 @@ async function deleteCalendar(calendarName, callback) {
 	if (exists) {
 		const calendarReference = await getCalendarReference();
 		calendarReference.calendars.delete({
-			resource: {
-				calendarId: exists.id,
-			},
+			calendarId: exists.id,
 		},
 		// eslint-disable-next-line no-unused-vars
 		async (err, res) => {
 			if (err) {
 				callback(false, 'Failed to delete ' + calendarName + '\nAsk Bradley to check Breadbot console', err);
 				stdout.write('[ERROR]: ');
-				console.log(err.errors);
+				console.log(err);
 				return;
 			}
 
