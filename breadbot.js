@@ -60,6 +60,15 @@ client.on(Events.InteractionCreate, async interaction => {
 	}
 });
 
+client.on(Events.GuildCreate, async guild => {
+	if (guild.available) {
+		console.log('Got into a server')
+		console.log(`The server name is ${guild.name}`)
+		console.log(`The server description is ${guild.description}`)
+		console.log(`The server snowflake is ${guild.id}`)
+	}
+})
+
 client.once(Events.ClientReady, c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });
