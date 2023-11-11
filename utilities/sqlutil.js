@@ -36,7 +36,14 @@ async function isServerRegistered(server_snowflake) {
 }
 
 async function registerServer(server_snowflake, server_name, server_description) {
-    var sql = `INSERT INTO servers VALUES ('${server_snowflake}', '${server_name}', '${server_description}');`
+    var sql = ""
+
+    if(server_description) {
+        sql = `INSERT INTO servers VALUES (${server_snowflake}, '${server_name}', '${server_description}');`
+    } else {
+        sql = `INSERT INTO servers VALUES (${server_snowflake}, '${server_name}', NULL);`
+    }
+
     var result = null
 
     await connection_pool.query(sql, (error, results, fields) => {
