@@ -23,7 +23,11 @@ async function isServerRegistered(server_snowflake) {
             console.log(error)
         }
 
-        resultLength = results.length
+        if(results == null) {
+            resultLength = 0
+        } else {
+            resultLength = results.length
+        }
     })
 
     return resultLength != 0
