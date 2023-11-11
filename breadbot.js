@@ -71,7 +71,7 @@ client.on(Events.GuildCreate, async guild => {
 		console.log(`The server snowflake is ${guild.id}`)
 
 		sqlutil.isServerRegistered(guild.id).then(registered => {
-			if (registered) {
+			if (!registered) {
 				console.log("Server is not registered")
 
 				sqlutil.registerServer(guild.id, guild.name, guild.description).then(added => {
