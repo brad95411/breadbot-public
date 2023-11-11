@@ -18,7 +18,7 @@ async function buildPool(db_name) {
 async function isServerRegistered(server_snowflake) {
     var resultLength = null
 
-    await connection_pool.query(`SELECT * FROM servers WHERE server_snowflake = '${server_snowflake}';`, (error, results, fields) => {
+    await connection_pool.query(`SELECT * FROM servers WHERE server_snowflake = ?;`, [server_snowflake], (error, results, fields) => {
         if (error) {
             console.log(error)
         }
@@ -55,7 +55,7 @@ async function registerServer(server_snowflake, server_name, server_description)
 async function unregisterServer(server_snowflake) {
     var result = null
 
-    await connection_pool.query(`DELETE FROM servers WHERE server_snowflake = '${server_snowflake}';`, (error, results, fields) => {
+    await connection_pool.query(`DELETE FROM servers WHERE server_snowflake = ?;`, [server_snowflake], (error, results, fields) => {
         if (error) {
             console.log(error)
 
