@@ -11,6 +11,7 @@ I have a subset of features that I want it to have before I call it "production 
 "Production Ready" Features
 - [ ] Google Calendar Integration for Event Management
     - [ ] Create/Manage/Remove Events and Calendars
+        - [ ] Add Autocomplete for common elements like Calendar Names, Event Names, Timezones, etc.
     - [ ] Calendar Announcements for Upcoming Events
 - [ ] Poll Creation and Results Announcements
 - [ ] Conversation Archiving (May be Removed)

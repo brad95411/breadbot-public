@@ -23,7 +23,7 @@ async function main() {
 			console.log(err.errors);
 			return;
 		}
-		console.log(res.data.items.map(x => x.summary));
+		console.log(res.data.items.map(x => x.summary + '---' + x.timeZone));
 	});
 }
 

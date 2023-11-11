@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { addCalendar } = require('../../utilities/googlecalendar.js');
+// const { getTimeZones } = require('@vvo/tzdb');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -12,15 +13,20 @@ module.exports = {
 				.setRequired(true))
 		.addStringOption(option =>
 			option
-				.setName('description')
-				.setDescription('The description of this new calendar')),
+				.setName('timezone')
+				.setDescription('The Time Zone of this new calendar, must be in IANA format')
+				.setRequired(true)),
+	// .addChoices(getTimeZones().map(tz => {
+	//	return { name: tz.name, value: tz.name };
+	// }))),
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
 
 		const name = interaction.options.getString('name');
+		const timezone = interaction.options.getString('timezone');
 
 		// eslint-disable-next-line no-unused-vars
-		addCalendar(name, async (success, message, extra) => {
+		addCalendar(name, timezone, async (success, message, extra) => {
 			const embedResponse = new EmbedBuilder()
 				.setColor(success ? 0x00FF00 : 0xFF0000)
 				.setTitle(message);

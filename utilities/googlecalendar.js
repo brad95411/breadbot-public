@@ -31,18 +31,26 @@ async function doesCalendarExist(calendarName) {
 	return null;
 }
 
-// TODO This needs to be changed so that it uses the common callback
-// format that I've created
 async function getListOfCalendars(options, callback) {
 	const calendarReference = await getCalendarReference();
-	calendarReference.calendarList.list(options, callback);
+	calendarReference.calendarList.list(options, async (err, res) => {
+		if (err) {
+			callback(false, 'Failed to retrieve the list of calendars\nAsk Bradley to check Breadbot console');
+			stdout.write('[ERROR]:');
+			console.log(err.errors);
+			return;
+		}
+
+		callback(true, 'Calendar List', res.data.items);
+	});
 }
 
-async function addCalendar(calendarName, callback) {
+async function addCalendar(calendarName, timezone, callback) {
 	const calendarReference = await getCalendarReference();
 	calendarReference.calendars.insert({
 		resource: {
 			summary: calendarName,
+			timeZone: timezone,
 		},
 	},
 	// eslint-disable-next-line no-unused-vars
@@ -77,6 +85,28 @@ async function deleteCalendar(calendarName, callback) {
 
 			callback(true, 'Successfully deleted ' + calendarName, null);
 		});
+	}
+	else {
+		callback(false, 'The calendar name specified doesn\'t exist', null);
+	}
+}
+
+async function addEvent(calendarName, eventName, location, description, startDate, startTime, endDate, endTime) {
+	const exists = await doesCalendarExist(calendarName);
+
+	if (exists) {
+		const calendarReference = await getCalendarReference();
+		calendarReference.events.insert({
+			calendarId: exists.id,
+			resource: {
+				summary: eventName,
+				location: location,
+				description: description,
+				start: {
+					
+				}
+			},
+		})
 	}
 	else {
 		callback(false, 'The calendar name specified doesn\'t exist', null);
