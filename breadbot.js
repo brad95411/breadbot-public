@@ -1,7 +1,10 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
-const { token } = require('./config.json');
+const { token, mysql_username, mysql_password } = require('./config.json');
+const sqlutil = require('./utilities/sqlutil')
+
+sqlutil.buildPool('breadbot_test')
 
 const getAllFiles = function(directoryPath, arrayOfFiles) {
 	const files = fs.readdirSync(directoryPath);
@@ -66,6 +69,18 @@ client.on(Events.GuildCreate, async guild => {
 		console.log(`The server name is ${guild.name}`)
 		console.log(`The server description is ${guild.description}`)
 		console.log(`The server snowflake is ${guild.id}`)
+
+		if (!sqlutil.isServerRegistered(guild.id)) {
+			console.log("Server is not registered")
+
+			if (sqlutil.registerServer(guild.id, guild.name, guild.description)) {
+				console.log("Server Registered")
+			} else {
+				console.log("Failed to register the server")
+			}
+		} else {
+			console.log("Server is already registered")
+		}
 	}
 })
 
