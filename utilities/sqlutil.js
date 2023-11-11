@@ -39,9 +39,9 @@ async function registerServer(server_snowflake, server_name, server_description)
     var sql = ""
 
     if(server_description) {
-        sql = `INSERT INTO servers VALUES (${server_snowflake}, '${server_name}', '${server_description}');`
+        sql = `INSERT INTO servers VALUES (${server_snowflake}, '${mysql.escape(server_name)}', '${mysql.escape(server_description)}');`
     } else {
-        sql = `INSERT INTO servers VALUES (${server_snowflake}, '${server_name}', NULL);`
+        sql = `INSERT INTO servers VALUES (${server_snowflake}, '${mysql.escape(server_name)}', NULL);`
     }
 
     var result = null
