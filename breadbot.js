@@ -88,19 +88,20 @@ client.on(Events.GuildCreate, async guild => {
 	}
 })
 
+// There is what too much async/await mess in here. Needs to be reworked
 client.on(Events.MessageCreate, async message => {
 	console.log("Message Create Fired")
 
-	sqlutil.isChannelRegistered(message.channelId).then(channel_check => {
+	sqlutil.isChannelRegistered(message.channelId).then(async channel_check => {
 		if(!channel_check) {
 			console.log(`Registering Channel ${message.channel.guild.name} - ${message.channel.name}`)
-			sqlutil.registerChannel(message.channel.id, message.channel.guildId, message.channel.name)
+			await sqlutil.registerChannel(message.channel.id, message.channel.guildId, message.channel.name)
 		}
 
-		sqlutil.isUserRegistered(message.author.id).then(user_check => {
+		sqlutil.isUserRegistered(message.author.id).then(async user_check => {
 			if(!user_check) {
 				console.log(`Registering User ${messsage.author.username}`)
-				sqlutil.registerUser(message.author.id, message.author.username, message.author.displayName)
+				await sqlutil.registerUser(message.author.id, message.author.username, message.author.displayName)
 			}
 
 			console.log(`Registering message from ${message.channel.guild.name} - ${message.channel.name} - ${message.author.username}`)
