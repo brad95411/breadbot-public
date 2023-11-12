@@ -180,7 +180,7 @@ async function registerUser(user_snowflake, user_name, user_displayname) {
 
 async function registerUserIfMissing(user_snowflake, user_name, user_displayname) {
     return connection_pool.query("SELECT * FROM users WHERE user_snowflake = ?;", [user_snowflake]).then(async ([rows, fields]) => {
-        if (rows) {
+        if (rows.length != 0) {
             return true
         } else {
             return await connection_pool.query("INSERT INTO users VALUES (?, ?, ?)", [user_snowflake, user_name, user_displayname]).then((rows, fields) => {
