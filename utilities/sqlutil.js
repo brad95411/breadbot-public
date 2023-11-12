@@ -1,8 +1,6 @@
 const mysql = require('mysql2')
 const { mysql_username, mysql_password } = require('../config.json')
 
-// TODO Some of the below functions are unnecessarily repetitious 
-
 var connection_pool = null
 
 async function buildPool(db_name) {

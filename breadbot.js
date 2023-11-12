@@ -3,7 +3,6 @@ const path = require('node:path');
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
 const { token, mysql_username, mysql_password } = require('./config.json');
 const sqlutil = require('./utilities/sqlutil');
-const { sql } = require('googleapis/build/src/apis/sql');
 
 sqlutil.buildPool('breadbot_test')
 
@@ -71,25 +70,16 @@ client.on(Events.GuildCreate, async guild => {
 		console.log(`The server description is ${guild.description}`)
 		console.log(`The server snowflake is ${guild.id}`)
 
-		sqlutil.isServerRegistered(guild.id).then(registered => {
-			if (!registered) {
-				console.log("Server is not registered")
-
-				sqlutil.registerServer(guild.id, guild.name, guild.description).then(added => {
-					if (added) {
-						console.log("Server Registered")
-					} else {
-						console.log("Failed to register the server")
-					}
-				})
+		sqlutil.registerServerIfMissing(guild.id, guild.name, guild.description).then(server_added => {
+			if(server_added) {
+				console.log(`Server Added ${guild.name}`)
 			} else {
-				console.log("Server is already registered")
+				console.log(`Server failed to add ${guild.name}`)
 			}
 		})
 	}
 })
 
-// There is what too much async/await mess in here. Needs to be reworked
 client.on(Events.MessageCreate, async message => {
 	console.log("Message Create Fired")
 
