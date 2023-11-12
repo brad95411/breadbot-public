@@ -88,6 +88,28 @@ client.on(Events.GuildCreate, async guild => {
 	}
 })
 
+client.on(Events.MessageCreate, async message => {
+	sqlutil.isChannelRegistered(message.channelId).then(channel_check => {
+		if(!channel_check) {
+			sqlutil.registerChannel(message.channel.id, message.channel.guildId, message.channel.name)
+		}
+
+		sqlutil.isUserRegistered(message.user.id).then(user_check => {
+			if(!user_check) {
+				sqlutil.registerUser(message.user.id, message.user.username, message.user.displayName)
+			}
+
+			sqlutil.registerMessage(message.id, message.channelId, message.user.id, message.content, message.createdAt).then(message_add => {
+				if(message_add) {
+					console.log("Message logged")
+				} else {
+					console.log("Failed to log message")
+				}
+			})
+		})
+	})
+})
+
 client.once(Events.ClientReady, c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
 });

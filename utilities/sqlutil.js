@@ -1,6 +1,8 @@
 const mysql = require('mysql')
 const { mysql_username, mysql_password } = require('../config.json')
 
+// TODO Some of the below functions are unnecessarily repetitious 
+
 var connection_pool = null
 
 async function buildPool(db_name) {
@@ -68,9 +70,105 @@ async function unregisterServer(server_snowflake) {
     return result
 }
 
+async function isChannelRegistered(channel_snowflake) {
+    var resultLength = null
+
+    await connection_pool.query(`SELECT * FROM channels WHERE channel_snowflake = ?;`, [channel_snowflake], (error, results, fields) => {
+        if (error) {
+            console.log(error)
+        }
+
+        console.log(results)
+
+        if(results) {
+            resultLength = results.length
+        } else {
+            resultLength = 0
+        }
+    })
+
+    return resultLength != 0
+}
+
+async function registerChannel(channel_snowflake, server_snowflake, channel_name) {
+    var sql = `INSERT INTO channels VALUES (?, ?, ?);`
+    var result = null
+
+    await connection_pool.query(sql, [channel_snowflake, server_snowflake, channel_name], (error, results, fields) => {
+        if (error) {
+            console.log(error)
+
+            result = false
+        } else {
+            result = true
+        }
+    })
+
+    return result
+}
+
+async function isUserRegistered(user_snowflake) {
+    var resultLength = null
+
+    await connection_pool.query(`SELECT * FROM users WHERE user_snowflake = ?;`, [user_snowflake], (error, results, fields) => {
+        if (error) {
+            console.log(error)
+        }
+
+        console.log(results)
+
+        if(results) {
+            resultLength = results.length
+        } else {
+            resultLength = 0
+        }
+    })
+
+    return resultLength != 0
+}
+
+async function registerUser(user_snowflake, user_name, user_displayname) {
+    var sql = `INSERT INTO users VALUES (?, ?, ?);`
+    var result = null
+
+    await connection_pool.query(sql, [user_snowflake, user_name, user_displayname], (error, results, fields) => {
+        if (error) {
+            console.log(error)
+
+            result = false
+        } else {
+            result = true
+        }
+    })
+
+    return result
+}
+
+async function registerMessage(message_snowflake, channel_snowflake, user_snowflake, message_content, message_timestamp) {
+    var sql = `INSERT INTO users VALUES (?, ?, ?, ?, ?);`
+    var result = null
+
+    await connection_pool.query(sql, [message_snowflake, channel_snowflake, user_snowflake, message_content, message_timestamp], (error, results, fields) => {
+        if (error) {
+            console.log(error)
+
+            result = false
+        } else {
+            result = true
+        }
+    })
+
+    return result
+}
+
 module.exports = {
     buildPool,
     isServerRegistered,
     registerServer,
-    unregisterServer
+    unregisterServer,
+    isChannelRegistered,
+    registerChannel,
+    isUserRegistered,
+    registerUser,
+    registerMessage
 }
