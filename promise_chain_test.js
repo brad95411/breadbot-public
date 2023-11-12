@@ -9,9 +9,9 @@ var connection_pool = mysql.createPool({
     connectionLimit: 10
 }).promise()
 
-connection_pool.query("SELECT * FROM servers").then(([rows, fields]) => {
+connection_pool.query("SELECT * FROM servers").then(async ([rows, fields]) => {
     console.log(rows)
-    connection_pool.query("SELECT * FROM channels").then(([rows, fields]) => {
+    return await connection_pool.query("SELECT * FROM channels").then(([rows, fields]) => {
         console.log(rows)
         return "SOME TEXT"
     })
