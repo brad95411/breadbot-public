@@ -26,7 +26,7 @@ const getAllFiles = function(directoryPath, arrayOfFiles) {
 const allFiles = [];
 getAllFiles('.' + path.sep + 'commands', allFiles);
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers, GatewayIntentBits.MessageContent, GatewayIntentBits.VoiceStateUpdate] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] });
 
 client.commands = new Collection();
 
