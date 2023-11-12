@@ -1,4 +1,4 @@
-const mysql = require('mysql')
+const mysql = require('mysql2')
 const { mysql_username, mysql_password } = require('../config.json')
 
 // TODO Some of the below functions are unnecessarily repetitious 
@@ -13,7 +13,7 @@ async function buildPool(db_name) {
             password: mysql_password,
             database: db_name,
             connectionLimit: 10
-        })
+        }).promise()
     }
 }
 
@@ -52,6 +52,12 @@ async function registerServer(server_snowflake, server_name, server_description)
     })
 
     return result
+}
+
+async function registerServerIfMissing(server_snowflake, server_name, server_description) {
+    connection_pool.query(`SELECT * FROM servers WHERE server_snowflake = ?;` [server_snowflake] (error, results, fields) => {
+
+    })
 }
 
 async function unregisterServer(server_snowflake) {
