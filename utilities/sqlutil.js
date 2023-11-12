@@ -125,7 +125,7 @@ async function registerChannel(channel_snowflake, server_snowflake, channel_name
 
 async function registerChannelIfMissing(channel_snowflake, server_snowflake, channel_name) {
     return connection_pool.query("SELECT * FROM channels WHERE channel_snowflake = ?;", [channel_snowflake]).then(async ([rows, fields]) => {
-        if (rows) {
+        if (rows.length == 0) {
             console.log("Channel Already Registered")
             return true
         } else {
