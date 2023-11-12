@@ -95,14 +95,11 @@ client.on(Events.MessageCreate, async message => {
 	var channel_registered = sqlutil.isChannelRegistered(message.channelId)
 	var user_registered = sqlutil.isUserRegistered(message.author.id)
 
-	await channel_registered
-	await user_registered
-
-	if(!channel_registered) {
+	if(!(await channel_registered).valueOf()) {
 		await sqlutil.registerChannel(message.channel.id, message.channel.guildId, message.channel.name)
 	}
 
-	if(!user_registered) {
+	if(!(await user_registered).valueOf()) {
 		await sqlutil.registerUser(messsage.author.id, message.author.username, message.author.displayName)
 	}
 
