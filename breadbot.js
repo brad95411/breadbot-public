@@ -81,8 +81,10 @@ client.on(Events.GuildCreate, async guild => {
 })
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
-	console.log(`Old State ${oldState}`)
-	console.log(`New State ${newState}`)
+	console.log(`Old State`)
+	console.log(`\t ${oldState.guild.name} - ${oldState.channel.name} - ${oldState.member.username}`)
+	console.log(`New State`)
+	console.log(`\t ${newState.guild.name} - ${newState.channel.name} - ${newState.member.username}`)
 })
 
 client.on(Events.MessageCreate, async message => {
