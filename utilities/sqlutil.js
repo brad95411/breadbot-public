@@ -145,7 +145,7 @@ async function registerUser(user_snowflake, user_name, user_displayname) {
 }
 
 async function registerMessage(message_snowflake, channel_snowflake, user_snowflake, message_content, message_timestamp) {
-    var sql = `INSERT INTO users VALUES (?, ?, ?, ?, ?);`
+    var sql = `INSERT INTO users VALUES (?, ?, ?, ?, ?, 0, 0);`
     var result = null
 
     await connection_pool.query(sql, [message_snowflake, channel_snowflake, user_snowflake, message_content, message_timestamp], (error, results, fields) => {
