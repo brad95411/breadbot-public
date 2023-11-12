@@ -2,7 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
 const { token, mysql_username, mysql_password } = require('./config.json');
-const sqlutil = require('./utilities/sqlutil')
+const sqlutil = require('./utilities/sqlutil');
+const { sql } = require('googleapis/build/src/apis/sql');
 
 sqlutil.buildPool('breadbot_test')
 
@@ -92,6 +93,20 @@ client.on(Events.GuildCreate, async guild => {
 client.on(Events.MessageCreate, async message => {
 	console.log("Message Create Fired")
 
+	var channel_ok = await sqlutil.registerChannelIfMissing(message.channelId, message.channel.guild.id, message.channel.name)
+	var user_ok = await sqlutil.registerUserIfMissing(message.author.id, message.author.username, message.author.displayName)
+
+	if (channel_ok && user_ok) {
+		sqlutil.registerMessage(message.id, message.channelId, message.author.id, message.content, message.createdAt).then(message_add => {
+			if(message_add) {
+				console.log("Message Added")
+			} else {
+				console.log("Failed to log message")
+			}
+		})
+	}
+
+	/*
 	var channel_registered = sqlutil.isChannelRegistered(message.channelId)
 	var user_registered = sqlutil.isUserRegistered(message.author.id)
 
@@ -112,7 +127,7 @@ client.on(Events.MessageCreate, async message => {
 		console.log(`Registering user ${message.author.username}`)
 
 		var user_registered_result = await sqlutil.registerUser(messsage.author.id, message.author.username, message.author.displayName)
-		
+
 		if(user_registered_result.valueOf()) {
 			console.log(`User Registered ${message.author.username}`)
 		} else {
@@ -127,7 +142,7 @@ client.on(Events.MessageCreate, async message => {
 		} else {
 			console.log("Failed to log message")
 		}
-	})
+	})*/
 })
 
 client.once(Events.ClientReady, c => {

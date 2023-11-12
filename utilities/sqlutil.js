@@ -55,8 +55,18 @@ async function registerServer(server_snowflake, server_name, server_description)
 }
 
 async function registerServerIfMissing(server_snowflake, server_name, server_description) {
-    connection_pool.query(`SELECT * FROM servers WHERE server_snowflake = ?;` [server_snowflake] (error, results, fields) => {
+    return connection_pool.query("SELECT * FROM servers WHERE server_snowflake = ?;", [server_snowflake]).then(async ([rows, fields]) => {
+        if (rows) {
+            return true
+        } else {
+            return await connection_pool.query("INSERT INTO servers VALUES (?, ?, ?)", [server_snowflake, server_name, server_description]).then((rows, fields) => {
+                return true
+            })
+        }
+    }).catch((error) => {
+        console.log(error)
 
+        return false
     })
 }
 
@@ -113,6 +123,22 @@ async function registerChannel(channel_snowflake, server_snowflake, channel_name
     return result
 }
 
+async function registerChannelIfMissing(channel_snowflake, server_snowflake, channel_name) {
+    return connection_pool.query("SELECT * FROM channels WHERE channel_snowflake = ?;", [channel_snowflake]).then(async ([rows, fields]) => {
+        if (rows) {
+            return true
+        } else {
+            return await connection_pool.query("INSERT INTO channels VALUES (?, ?, ?)", [channel_snowflake, server_snowflake, channel_name]).then((rows, fields) => {
+                return true
+            })
+        }
+    }).catch((error) => {
+        console.log(error)
+
+        return false
+    })
+}
+
 async function isUserRegistered(user_snowflake) {
     var resultLength = null
 
@@ -150,6 +176,22 @@ async function registerUser(user_snowflake, user_name, user_displayname) {
     return result
 }
 
+async function registerUserIfMissing(user_snowflake, user_name, user_displayname) {
+    return connection_pool.query("SELECT * FROM users WHERE user_snowflake = ?;", [user_snowflake]).then(async ([rows, fields]) => {
+        if (rows) {
+            return true
+        } else {
+            return await connection_pool.query("INSERT INTO users VALUES (?, ?, ?)", [user_snowflake, user_name, user_displayname]).then((rows, fields) => {
+                return true
+            })
+        }
+    }).catch((error) => {
+        console.log(error)
+
+        return false
+    })
+}
+
 async function registerMessage(message_snowflake, channel_snowflake, user_snowflake, message_content, message_timestamp) {
     var sql = `INSERT INTO messages VALUES (?, ?, ?, ?, ?, 0, 0);`
     var result = null
@@ -176,5 +218,8 @@ module.exports = {
     registerChannel,
     isUserRegistered,
     registerUser,
-    registerMessage
+    registerMessage,
+    registerServerIfMissing,
+    registerChannelIfMissing,
+    registerUserIfMissing
 }

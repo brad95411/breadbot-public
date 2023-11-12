@@ -15,4 +15,4 @@ connection_pool.query("SELECT * FROM servers").then(async ([rows, fields]) => {
         console.log(rows)
         return "SOME TEXT"
     })
-}).then(console.log)
+}).catch(() => {return "SOME FAIL TEXT"}).then(console.log)
