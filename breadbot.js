@@ -97,15 +97,15 @@ client.on(Events.MessageCreate, async message => {
 			sqlutil.registerChannel(message.channel.id, message.channel.guildId, message.channel.name)
 		}
 
-		sqlutil.isUserRegistered(message.user.id).then(user_check => {
+		sqlutil.isUserRegistered(message.author.id).then(user_check => {
 			if(!user_check) {
-				console.log(`Registering User ${messsage.user.username}`)
-				sqlutil.registerUser(message.user.id, message.user.username, message.user.displayName)
+				console.log(`Registering User ${messsage.author.username}`)
+				sqlutil.registerUser(message.author.id, message.author.username, message.author.displayName)
 			}
 
-			console.log(`Registering message from ${message.channel.guild.name} - ${message.channel.name} - ${message.user.username}`)
+			console.log(`Registering message from ${message.channel.guild.name} - ${message.channel.name} - ${message.author.username}`)
 
-			sqlutil.registerMessage(message.id, message.channelId, message.user.id, message.content, message.createdAt).then(message_add => {
+			sqlutil.registerMessage(message.id, message.channelId, message.author.id, message.content, message.createdAt).then(message_add => {
 				if(message_add) {
 					console.log("Message logged")
 				} else {
