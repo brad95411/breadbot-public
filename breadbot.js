@@ -89,15 +89,21 @@ client.on(Events.GuildCreate, async guild => {
 })
 
 client.on(Events.MessageCreate, async message => {
+	console.log("Message Create Fired")
+
 	sqlutil.isChannelRegistered(message.channelId).then(channel_check => {
 		if(!channel_check) {
+			console.log(`Registering Channel ${message.channel.guild.name} - ${message.channel.name}`)
 			sqlutil.registerChannel(message.channel.id, message.channel.guildId, message.channel.name)
 		}
 
 		sqlutil.isUserRegistered(message.user.id).then(user_check => {
 			if(!user_check) {
+				console.log(`Registering User ${messsage.user.username}`)
 				sqlutil.registerUser(message.user.id, message.user.username, message.user.displayName)
 			}
+
+			console.log(`Registering message from ${message.channel.guild.name} - ${message.channel.name} - ${message.user.username}`)
 
 			sqlutil.registerMessage(message.id, message.channelId, message.user.id, message.content, message.createdAt).then(message_add => {
 				if(message_add) {
