@@ -80,8 +80,9 @@ client.on(Events.GuildCreate, async guild => {
 	}
 })
 
-client.on(Events.VoiceStateUpdate, async ([oldState, newState]) => {
-	console.log("State Change")
+client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+	console.log(`Old State ${oldState}`)
+	console.log(`New State ${newState}`)
 })
 
 client.on(Events.MessageCreate, async message => {
