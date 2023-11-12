@@ -96,11 +96,29 @@ client.on(Events.MessageCreate, async message => {
 	var user_registered = sqlutil.isUserRegistered(message.author.id)
 
 	if(!(await channel_registered).valueOf()) {
-		await sqlutil.registerChannel(message.channel.id, message.channel.guildId, message.channel.name)
+		console.log(`Registering Channel ${message.channel.name} ${message.channel.guild.name}`)
+
+		var channel_registered_result = await sqlutil.registerChannel(message.channel.id, message.channel.guildId, message.channel.name)
+
+		if(channel_registered_result.valueOf()) {
+			console.log(`Channel Registered ${message.channel.name} ${message.channel.guild.name}`)
+		} else {
+			console.log(`Failed to register channel ${message.channel.name} ${message.channel.guild.name}`)
+			return
+		}
 	}
 
 	if(!(await user_registered).valueOf()) {
-		await sqlutil.registerUser(messsage.author.id, message.author.username, message.author.displayName)
+		console.log(`Registering user ${message.author.username}`)
+
+		var user_registered_result = await sqlutil.registerUser(messsage.author.id, message.author.username, message.author.displayName)
+		
+		if(user_registered_result.valueOf()) {
+			console.log(`User Registered ${message.author.username}`)
+		} else {
+			console.log(`failed to register user ${message.author.username}`)
+			return
+		}
 	}
 
 	sqlutil.registerMessage(message.id, message.channelId, message.author.id, message.content, message.createdAt).then(message_add => {
