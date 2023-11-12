@@ -81,9 +81,9 @@ client.on(Events.GuildCreate, async guild => {
 })
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
-	if (oldState.channel.name == null && newState.channel.name != null) {
+	if (oldState.channel== null && newState.channel != null) {
 		console.log(`User ${newState.member.username} joined channel ${newState.channel.name} in guild ${newState.guild.name}`)
-	} else if (oldState.channel.name != null && newState.channel.name == null) {
+	} else if (oldState.channel != null && newState.channel == null) {
 		console.log(`User ${oldState.member.username} left channel ${oldState.channel.name} in guild ${oldState.guild.name}`)
 	}
 })
