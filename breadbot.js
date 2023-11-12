@@ -3,6 +3,7 @@ const path = require('node:path');
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
 const { token, mysql_username, mysql_password } = require('./config.json');
 const sqlutil = require('./utilities/sqlutil');
+const { sql } = require('googleapis/build/src/apis/sql');
 
 sqlutil.buildPool('breadbot_test')
 
@@ -82,9 +83,25 @@ client.on(Events.GuildCreate, async guild => {
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 	if (oldState.channel== null && newState.channel != null) {
-		console.log(`User ${newState.member.username} joined channel ${newState.channel.name} in guild ${newState.guild.name}`)
+		console.log(`User ${newState.member.user.username} joined channel ${newState.channel.name} in guild ${newState.guild.name}`)
+
+		var did_update = await sqlutil.updateVoiceActiveUsers(newState.guild.id, newState.channelId, true)
+
+		if (did_update) {
+			console.log("\t Registered another user as participating in this voice channel")
+		} else {
+			console.log("\t Failed to register this user as participating in this voice channel")
+		}
 	} else if (oldState.channel != null && newState.channel == null) {
-		console.log(`User ${oldState.member.username} left channel ${oldState.channel.name} in guild ${oldState.guild.name}`)
+		console.log(`User ${oldState.member.user.username} left channel ${oldState.channel.name} in guild ${oldState.guild.name}`)
+
+		var did_update = await sqlutil.updateVoiceActiveUsers(newState.guild.id, newState.channelId, false)
+
+		if (did_update) {
+			console.log("\t Removed registered user as participating in this voice channel")
+		} else {
+			console.log("\t Failed to remove registered user as participating in this voice channel")
+		}
 	}
 })
 
@@ -93,6 +110,9 @@ client.on(Events.MessageCreate, async message => {
 
 	var channel_ok = await sqlutil.registerChannelIfMissing(message.channelId, message.channel.guild.id, message.channel.name)
 	var user_ok = await sqlutil.registerUserIfMissing(message.author.id, message.author.username, message.author.displayName)
+
+	console.log(`Channel OK? ${channel_ok}`)
+	console.log(`User OK? ${user_ok}`)
 
 	if (channel_ok && user_ok) {
 		sqlutil.registerMessage(message.id, message.channelId, message.author.id, message.content, message.createdAt).then(message_add => {

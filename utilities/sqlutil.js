@@ -92,11 +92,49 @@ async function registerMessage(message_snowflake, channel_snowflake, user_snowfl
     })
 }
 
+async function registerVoiceChannelIfMissing(server_snowflake, channel_snowflake) {
+    return connection_pool.query("SELECT * FROM voice_channel_active_users WHERE server_snowflake = ? AND channel_snowflake = ?", [server_snowflake, channel_snowflake]).then(async ([rows, fields]) => {
+        if(rows.length != 0) {
+            return true
+        } else {
+            return await connection_pool.query("INSERT INTO voice_channel_active_users VALUES (?, ?, 0)", [server_snowflake, channel_snowflake]).then((rows, fields) => {
+                return true
+            })
+        }
+    }).catch((error) => {
+        console.log(error)
+
+        return false
+    })
+}
+
+//Add is true, subtract is false
+async function updateVoiceActiveUsers(server_snowflake, channel_snowflake, add_or_subtract) {
+    var voice_channel_ok = await registerVoiceChannelIfMissing(server_snowflake, channel_snowflake)
+
+    if(voice_channel_ok) {
+        var sql = ""
+
+        if(add_or_subtract) {
+            sql = "UPDATE voice_channel_active_users SET voice_active_users = voice_active_users + 1 WHERE server_snowflake = ? AND channel_snowflake = ?"
+        } else {
+            sql = "UPDATE voice_channel_active_users SET voice_active_users = voice_active_users - 1 WHERE server_snowflake = ? AND channel_snowflake = ?"
+        }
+
+        return await connection_pool.query(sql, [server_snowflake, channel_snowflake]).then((rows_fields) => {
+            return true
+        })
+    } else {
+        return false
+    }
+}
+
 module.exports = {
     buildPool,
     unregisterServer,
     registerMessage,
     registerServerIfMissing,
     registerChannelIfMissing,
-    registerUserIfMissing
+    registerUserIfMissing,
+    updateVoiceActiveUsers
 }
