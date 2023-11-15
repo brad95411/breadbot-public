@@ -129,6 +129,44 @@ async function updateVoiceActiveUsers(server_snowflake, channel_snowflake, add_o
     }
 }
 
+async function getVoiceActiveUsers(server_snowflake, channel_snowflake) {
+    return connection_pool.query("SELECT voice_active_users FROM voice_channel_active_users WHERE server_snowflake = ? AND channel_snowflake = ?", [server_snowflake, channel_snowflake]).then(async ([rows, fields]) => {
+        if (rows.length == 0) {
+            return -1;
+        } else {
+            return rows[0].voice_active_users
+        }
+    }).catch((error) => {
+        console.log(error)
+
+        return -1;
+    })
+}
+
+async function registerNewCall(server_snowflake, channel_snowflake, call_start_time) {
+    return connection_pool.query("INSERT INTO call_states VALUES (?, ?, ?)", [server_snowflake, channel_snowflake, call_start_time]).then(async (rows, fields) => {
+        if (rows.length == 0) {
+            return -1;
+        } else {
+            return rows[0].insertId
+        }
+    }).catch((error) => {
+        console.log(error)
+
+        return -1;
+    })
+}
+
+async function updateCallEndTime(call_id, call_end_time) {
+    return await connection_pool.query("UPDATE call_states SET call_end_time = ? WHERE call_id = ?", [call_end_time, call_id]).then(async (rows, fields) => {
+        return true
+    }).catch((error) => {
+        console.log(error)
+
+        return false;
+    })
+}
+
 module.exports = {
     buildPool,
     unregisterServer,
@@ -136,5 +174,8 @@ module.exports = {
     registerServerIfMissing,
     registerChannelIfMissing,
     registerUserIfMissing,
-    updateVoiceActiveUsers
+    updateVoiceActiveUsers,
+    getVoiceActiveUsers,
+    registerNewCall,
+    updateCallEndTime
 }
