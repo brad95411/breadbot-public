@@ -145,10 +145,13 @@ async function getVoiceActiveUsers(server_snowflake, channel_snowflake) {
 
 async function inCall(server_snowflake, channel_snowflake) {
     return connection_pool.query("SELECT call_id FROM call_states WHERE server_snowflake = ? AND channel_snowflake = ? AND call_end_time IS NULL", [server_snowflake, channel_snowflake]).then(async (rows, fields) => {
+        console.log(`Num rows: ${rows.length}`)
+        console.log(rows)
         if (rows.length == 0) {
             return -1;
         } else {
             console.log("Made it here")
+            console.log(rows)
             return rows[0].call_id
         }
     }).catch((error) => {
