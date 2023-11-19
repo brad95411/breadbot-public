@@ -148,6 +148,7 @@ async function inCall(server_snowflake, channel_snowflake) {
         if (rows.length == 0) {
             return -1;
         } else {
+            console.log("Made it here")
             return rows[0].call_id
         }
     }).catch((error) => {
