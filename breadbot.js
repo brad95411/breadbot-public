@@ -84,11 +84,21 @@ client.on(Events.GuildCreate, async guild => {
 })
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+	console.log("Voice State Update Fired")
+
 	if (oldState.channel == null && newState.channel != null) {
+		console.log(`\tChannel Join Detected ${newState.guild.id} - ${newState.channelId} - ${newState.user.id}`)
+
 		var existingCallID = await sqlutil.inCall(newState.guild.id, newState.channelId)
 
+		console.log(`\tExisting call ID ${existingCallID}`)
+
 		if (existingCallID == -1) {
+			console.log("\tJoining a call")
+
 			var newCallID = await sqlutil.registerNewCall(newState.guild.id, newState.channelId, new Date())
+
+			console.log(`\tNext call ID ${newCallID}`)
 
 			// This should always have something to do, as all callIDs should be unique
 			fs.mkdirSync("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID, {recursive: true})
@@ -98,13 +108,15 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 
 				conn.on("speaking", (user, speaking) => {
 					if (speaking) {
+						console.log(`User is speaking ${user.username}`)
+
 						const audioStream = receiver.createStream(user, { mode: "pcm"})
 
 						const pathToFile = "." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID + `${user.id}-${Date.now()}.pcm`
 
 						audioStream.pipe(fs.createWriteStream(pathToFile))
 						audioStream.on("end", () => {
-							// Do I really need to do anything here
+							console.log(`User stopped speaking ${user.username}`)
 						})
 					}
 				})
