@@ -3,7 +3,7 @@ const path = require('node:path');
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
 const { token, mysql_username, mysql_password } = require('./config.json');
 const sqlutil = require('./utilities/sqlutil');
-const { sql } = require('googleapis/build/src/apis/sql');
+const { Console } = require('node:console');
 
 sqlutil.buildPool('breadbot_test')
 
@@ -33,7 +33,7 @@ client.commands = new Collection();
 
 const commandFiles = allFiles.filter(file => file.endsWith('.js'));
 
-var activeCalls = {}
+var activeCalls = []
 
 for (const file of commandFiles) {
 	const command = require(file);
@@ -84,7 +84,38 @@ client.on(Events.GuildCreate, async guild => {
 })
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
-	if (oldState.channel== null && newState.channel != null) {
+	if (oldState.channel == null && newState.channel != null) {
+		var existingCallID = await sqlutil.inCall(newState.guild.id, newState.channelId)
+
+		if (existingCallID == -1) {
+			var newCallID = await sqlutil.registerNewCall(newState.guild.id, newState.channelId, new Date())
+
+			// This should always have something to do, as all callIDs should be unique
+			fs.mkdirSync("." + path.sep + "media" + path.sep + newCallID, {recursive: true})
+
+			connection = newState.channel.join().then(conn => {
+				const receiver = conn.receiver
+
+				conn.on("speaking", (user, speaking) => {
+					if (speaking) {
+						const audioStream = receiver.createStream(user, { mode: "pcm"})
+
+						const pathToFile = "." + path.sep + "media" + path.sep + newCallID + `${user.id}-${Date.now()}.pcm`
+
+						audioStream.pipe(fs.createWriteStream(pathToFile))
+						audioStream.on("end", () => {
+							// Do I really need to do anything here
+						})
+					}
+				})
+			}).catch(error => {
+				console.log(error)
+			})
+		}
+	} else if (oldState.channel != null && newState.channel == null ) {
+
+	}
+	/*if (oldState.channel== null && newState.channel != null) {
 		console.log(`User ${newState.member.user.username} joined channel ${newState.channel.name} in guild ${newState.guild.name}`)
 
 		var last_voice_active_users = await sqlutil.getVoiceActiveUsers(newState.guild.id, newState.channelId)
@@ -141,7 +172,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 				console.log("Failed to properly set the end time of the call")
 			}
 		}
-	}
+	}*/
 })
 
 client.on(Events.MessageCreate, async message => {

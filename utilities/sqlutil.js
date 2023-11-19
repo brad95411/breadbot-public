@@ -143,6 +143,20 @@ async function getVoiceActiveUsers(server_snowflake, channel_snowflake) {
     })
 }
 
+async function inCall(server_snowflake, channel_snowflake) {
+    return connection_pool.query("SELECT call_id FROM call_states WHERE server_snowflake = ? AND channel_snowflake = ? AND call_end_time IS NULL", [server_snowflake, channel_snowflake]).then(async (rows, fields) => {
+        if (rows.length == 0) {
+            return -1;
+        } else {
+            return rows[0].call_id
+        }
+    }).catch((error) => {
+        console.log(error)
+
+        return -1;
+    })
+}
+
 async function registerNewCall(server_snowflake, channel_snowflake, call_start_time) {
     return connection_pool.query("INSERT INTO call_states VALUES (?, ?, ?)", [server_snowflake, channel_snowflake, call_start_time]).then(async (rows, fields) => {
         if (rows.length == 0) {
@@ -177,5 +191,6 @@ module.exports = {
     updateVoiceActiveUsers,
     getVoiceActiveUsers,
     registerNewCall,
-    updateCallEndTime
+    updateCallEndTime,
+    inCall
 }
