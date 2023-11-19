@@ -87,7 +87,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 	console.log("Voice State Update Fired")
 
 	if (oldState.channel == null && newState.channel != null) {
-		console.log(`\tChannel Join Detected ${newState.guild.id} - ${newState.channelId} - ${newState.user.id}`)
+		console.log(`\tChannel Join Detected ${newState.guild.id} - ${newState.channelId} - ${newState.member.id}`)
 
 		var existingCallID = await sqlutil.inCall(newState.guild.id, newState.channelId)
 
