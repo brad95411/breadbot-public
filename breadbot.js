@@ -91,7 +91,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			var newCallID = await sqlutil.registerNewCall(newState.guild.id, newState.channelId, new Date())
 
 			// This should always have something to do, as all callIDs should be unique
-			fs.mkdirSync("." + path.sep + "media" + path.sep + newCallID, {recursive: true})
+			fs.mkdirSync("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID, {recursive: true})
 
 			connection = newState.channel.join().then(conn => {
 				const receiver = conn.receiver
@@ -100,7 +100,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 					if (speaking) {
 						const audioStream = receiver.createStream(user, { mode: "pcm"})
 
-						const pathToFile = "." + path.sep + "media" + path.sep + newCallID + `${user.id}-${Date.now()}.pcm`
+						const pathToFile = "." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID + `${user.id}-${Date.now()}.pcm`
 
 						audioStream.pipe(fs.createWriteStream(pathToFile))
 						audioStream.on("end", () => {
