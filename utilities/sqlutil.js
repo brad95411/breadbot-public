@@ -162,7 +162,7 @@ async function inCall(server_snowflake, channel_snowflake) {
 }
 
 async function registerNewCall(server_snowflake, channel_snowflake, call_start_time) {
-    return connection_pool.query("INSERT INTO call_states VALUES (?, ?, ?)", [server_snowflake, channel_snowflake, call_start_time]).then(async ([rows, fields]) => {
+    return connection_pool.query("INSERT INTO call_states VALUES (?, ?, ?, NULL, 0, 0, 0)", [server_snowflake, channel_snowflake, call_start_time]).then(async ([rows, fields]) => {
         if (rows.length == 0) {
             return -1;
         } else {
