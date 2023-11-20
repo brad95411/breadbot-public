@@ -20,7 +20,7 @@ async function registerServerIfMissing(server_snowflake, server_name, server_des
         if (rows) {
             return true
         } else {
-            return await connection_pool.query("INSERT INTO servers VALUES (?, ?, ?)", [server_snowflake, server_name, server_description]).then((rows, fields) => {
+            return await connection_pool.query("INSERT INTO servers VALUES (?, ?, ?)", [server_snowflake, server_name, server_description]).then(([rows, fields]) => {
                 return true
             })
         }
@@ -54,7 +54,7 @@ async function registerChannelIfMissing(channel_snowflake, server_snowflake, cha
             return true
         } else {
             console.log("Channel Not Registered, registering")
-            return await connection_pool.query("INSERT INTO channels VALUES (?, ?, ?)", [channel_snowflake, server_snowflake, channel_name]).then((rows, fields) => {
+            return await connection_pool.query("INSERT INTO channels VALUES (?, ?, ?)", [channel_snowflake, server_snowflake, channel_name]).then(([rows, fields]) => {
                 return true
             })
         }
@@ -71,7 +71,7 @@ async function registerUserIfMissing(user_snowflake, user_name, user_displayname
         if (rows.length != 0) {
             return true
         } else {
-            return await connection_pool.query("INSERT INTO users VALUES (?, ?, ?)", [user_snowflake, user_name, user_displayname]).then((rows, fields) => {
+            return await connection_pool.query("INSERT INTO users VALUES (?, ?, ?)", [user_snowflake, user_name, user_displayname]).then(([rows, fields]) => {
                 return true
             })
         }
@@ -97,7 +97,7 @@ async function registerVoiceChannelIfMissing(server_snowflake, channel_snowflake
         if(rows.length != 0) {
             return true
         } else {
-            return await connection_pool.query("INSERT INTO voice_channel_active_users VALUES (?, ?, 0)", [server_snowflake, channel_snowflake]).then((rows, fields) => {
+            return await connection_pool.query("INSERT INTO voice_channel_active_users VALUES (?, ?, 0)", [server_snowflake, channel_snowflake]).then(([rows, fields]) => {
                 return true
             })
         }
@@ -121,7 +121,7 @@ async function updateVoiceActiveUsers(server_snowflake, channel_snowflake, add_o
             sql = "UPDATE voice_channel_active_users SET voice_active_users = voice_active_users - 1 WHERE server_snowflake = ? AND channel_snowflake = ?"
         }
 
-        return await connection_pool.query(sql, [server_snowflake, channel_snowflake]).then((rows_fields) => {
+        return await connection_pool.query(sql, [server_snowflake, channel_snowflake]).then(([rows, fields]) => {
             return true
         })
     } else {
@@ -144,7 +144,7 @@ async function getVoiceActiveUsers(server_snowflake, channel_snowflake) {
 }
 
 async function inCall(server_snowflake, channel_snowflake) {
-    return connection_pool.query("SELECT call_id FROM call_states WHERE server_snowflake = ? AND channel_snowflake = ? AND call_end_time IS NULL", [server_snowflake, channel_snowflake]).then(async (rows, fields) => {
+    return connection_pool.query("SELECT call_id FROM call_states WHERE server_snowflake = ? AND channel_snowflake = ? AND call_end_time IS NULL", [server_snowflake, channel_snowflake]).then(async ([rows, fields]) => {
         console.log(`Num rows: ${rows.length}`)
         console.log(rows)
         if (rows.length == 0) {
@@ -162,7 +162,7 @@ async function inCall(server_snowflake, channel_snowflake) {
 }
 
 async function registerNewCall(server_snowflake, channel_snowflake, call_start_time) {
-    return connection_pool.query("INSERT INTO call_states VALUES (?, ?, ?)", [server_snowflake, channel_snowflake, call_start_time]).then(async (rows, fields) => {
+    return connection_pool.query("INSERT INTO call_states VALUES (?, ?, ?)", [server_snowflake, channel_snowflake, call_start_time]).then(async ([rows, fields]) => {
         if (rows.length == 0) {
             return -1;
         } else {
@@ -176,7 +176,7 @@ async function registerNewCall(server_snowflake, channel_snowflake, call_start_t
 }
 
 async function updateCallEndTime(call_id, call_end_time) {
-    return await connection_pool.query("UPDATE call_states SET call_end_time = ? WHERE call_id = ?", [call_end_time, call_id]).then(async (rows, fields) => {
+    return await connection_pool.query("UPDATE call_states SET call_end_time = ? WHERE call_id = ?", [call_end_time, call_id]).then(async ([rows, fields]) => {
         return true
     }).catch((error) => {
         console.log(error)
