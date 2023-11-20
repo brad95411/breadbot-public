@@ -103,7 +103,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			// This should always have something to do, as all callIDs should be unique
 			fs.mkdirSync("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID, {recursive: true})
 
-			console.log(newState.guild.channels.cache)
+			/*console.log(newState.guild.channels.cache)
 
 			const voiceChannel = newState.guild.channels.cache
 									.filter(c => c.type === "voice" || c.type === "stage")
@@ -113,9 +113,9 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 				console.log("\tVOICE CHANNEL LOOKUP FAILED")
 				
 				return
-			}
+			}*/
 
-			connection = voiceChannel.join().then(conn => {
+			connection = newState.channel.join().then(conn => {
 				const receiver = conn.receiver
 
 				conn.on("speaking", (user, speaking) => {
