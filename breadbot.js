@@ -1,9 +1,13 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
+const { joinVoiceChannel, getVoiceConnection, entersState, VoiceConnectionStatus, EndBehaviorType } = require('@discordjs/voice')
 const { token, mysql_username, mysql_password } = require('./config.json');
 const sqlutil = require('./utilities/sqlutil');
 const { Console } = require('node:console');
+const prism = require('prism-media')
+
+
 
 sqlutil.buildPool('breadbot_test')
 
@@ -103,6 +107,39 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			// This should always have something to do, as all callIDs should be unique
 			fs.mkdirSync("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID, {recursive: true})
 
+			const connection = joinVoiceChannel({
+				channelId: newState.channelId,
+				guildId: newState.guild.id,
+				selfDeaf: false,
+				selfMute: true,
+				adapterCreator: newState.guild.voiceAdapterCreator
+			})
+
+			try {
+				// What the hell does 20e3 mean, is that supposed to be sci notation?
+				await entersState(connection, VoiceConnectionStatus.Ready, 20e3)
+				const receiver = connection.receiver
+
+				receiver.speaking.on("start", (user_id) => {
+					const opusStream = receiver.subscribe(user_id, {
+						end: {
+							behavior: EndBehaviorType.AfterSilence,
+							duration: 1000
+						}
+					})
+					.pipe(new prism.opus.OggDemuxer())
+					.pipe(new prism.opus.Decoder({
+						rate: 48000,
+						channels: 2,
+						frameSize: 960
+					}))
+					.pipe(fs.createWriteStream("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID + path.sep + `${Date.now()}-${user_id}.pcm`))
+
+				})
+			} catch (error) {
+				console.warn(error)
+			}
+
 			/*console.log(newState.guild.channels.cache)
 
 			const voiceChannel = newState.guild.channels.cache
@@ -115,6 +152,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 				return
 			}*/
 
+			/*
 			connection = newState.channel.join().then(conn => {
 				const receiver = conn.receiver
 
@@ -134,7 +172,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 				})
 			}).catch(error => {
 				console.log(error)
-			})
+			})*/
 		}
 	} else if (oldState.channel != null && newState.channel == null ) {
 
