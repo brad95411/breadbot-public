@@ -121,19 +121,22 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 				const receiver = connection.receiver
 
 				receiver.speaking.on("start", (user_id) => {
-					const opusStream = receiver.subscribe(user_id, {
+					receiver.subscribe(user_id, {
 						end: {
 							behavior: EndBehaviorType.AfterSilence,
 							duration: 1000
 						}
 					})
-					.pipe(new prism.opus.OggDemuxer())
-					.pipe(new prism.opus.Decoder({
-						rate: 48000,
-						channels: 2,
-						frameSize: 960
+					.pipe(new prism.opus.OggLogicalBitstream({
+						opusHead: new prism.opus.OpusHead({
+							channelCount: 2,
+							sampleRate: 48000
+						}),
+						pageSizeControl: {
+							maxPackets: 10
+						}
 					}))
-					.pipe(fs.createWriteStream("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID + path.sep + `${Date.now()}-${user_id}.pcm`))
+					.pipe(fs.createWriteStream("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID + path.sep + `${Date.now()}-${user_id}.ogg`))
 
 				})
 			} catch (error) {
