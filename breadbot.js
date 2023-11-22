@@ -134,7 +134,8 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 						}),
 						pageSizeControl: {
 							maxPackets: 10
-						}
+						},
+						crc: false
 					}))
 					.pipe(fs.createWriteStream("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID + path.sep + `${Date.now()}-${user_id}.ogg`))
 
