@@ -127,7 +127,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 							duration: 1000
 						}
 					})
-					/*.pipe(new prism.opus.OggLogicalBitstream({
+					.pipe(new prism.opus.OggLogicalBitstream({
 						opusHead: new prism.opus.OpusHead({
 							channelCount: 2,
 							sampleRate: 48000
@@ -136,8 +136,14 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 							maxPackets: 10
 						}/*,
 						crc: false*/
-					//}))
-					.pipe(fs.createWriteStream("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID + path.sep + `${Date.now()}-${user_id}.opus`))
+					}))
+					.pipe(new prism.opus.OggDemuxer())
+					.pipe(new prism.opus.Decoder({
+						channels: 2,
+						sampleRate: 48000,
+						frameSize: 960
+					}))
+					.pipe(fs.createWriteStream("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID + path.sep + `${Date.now()}-${user_id}.pcm`))
 
 				})
 			} catch (error) {
