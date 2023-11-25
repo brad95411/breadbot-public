@@ -77,7 +77,7 @@ for file in os.listdir(os.path.join(json_config["media_voice_folder"], args.call
     file_dict[file] = dict(
         user=user_lut[user_snowflake], 
         real_date=datetime.datetime.fromtimestamp(timestamp / 1000),
-        seconds_from_starttime=(datetime.datetime.fromtimestamp(timestamp / 1000) - call_start_time[0][0]).seconds
+        seconds_from_starttime=(datetime.datetime.fromtimestamp(timestamp / 1000) - call_start_time[0][0]).milliseconds
     )
 
 pprint(file_dict)
