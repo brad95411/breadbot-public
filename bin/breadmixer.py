@@ -57,7 +57,7 @@ user_lut = {}
 
 for file in os.listdir(os.path.join(json_config["media_voice_folder"], args.callid)):
     file_name_no_ext = file.split('.')[0]
-    timestamp = file_name_no_ext.split('-')[0]
+    timestamp = int(file_name_no_ext.split('-')[0])
     user_snowflake = file_name_no_ext.split('-')[1]
 
     if not user_snowflake in user_lut:
