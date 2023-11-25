@@ -2,14 +2,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
 const { joinVoiceChannel, getVoiceConnection, entersState, VoiceConnectionStatus, EndBehaviorType } = require('@discordjs/voice')
-const { token, mysql_username, mysql_password } = require('./config.json');
+const { token, media_voice_folder } = require('./config.json');
 const sqlutil = require('./utilities/sqlutil');
 const { Console } = require('node:console');
 const prism = require('prism-media')
 
-
-
-sqlutil.buildPool('breadbot_test')
+sqlutil.buildPool()
 
 const getAllFiles = function(directoryPath, arrayOfFiles) {
 	const files = fs.readdirSync(directoryPath);
@@ -105,7 +103,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			console.log(`\tNext call ID ${newCallID}`)
 
 			// This should always have something to do, as all callIDs should be unique
-			fs.mkdirSync("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID, {recursive: true})
+			fs.mkdirSync(media_voice_folder + path.sep + newCallID, {recursive: true})
 
 			const connection = joinVoiceChannel({
 				channelId: newState.channelId,
@@ -136,7 +134,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 							maxPackets: 10
 						}
 					}))
-					.pipe(fs.createWriteStream("." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID + path.sep + `${Date.now()}-${user_id}.ogg`))
+					.pipe(fs.createWriteStream(media_voice_folder + path.sep + newCallID + path.sep + `${Date.now()}-${user_id}.ogg`))
 
 				})
 			} catch (error) {

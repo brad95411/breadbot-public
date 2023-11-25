@@ -1,15 +1,15 @@
 const mysql = require('mysql2')
-const { mysql_username, mysql_password } = require('../config.json')
+const { mysql_username, mysql_password, mysql_host, mysql_db_name } = require('../config.json')
 
 var connection_pool = null
 
-async function buildPool(db_name) {
+async function buildPool() {
     if (connection_pool == null) {
         connection_pool = mysql.createPool({
-            host: "10.26.48.207",
+            host: mysql_host,
             user: mysql_username,
             password: mysql_password,
-            database: db_name,
+            database: mysql_db_name,
             connectionLimit: 10
         }).promise()
     }
