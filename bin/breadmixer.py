@@ -74,10 +74,14 @@ for file in os.listdir(os.path.join(json_config["media_voice_folder"], args.call
         # which creates the obnoxious 0,0 double dereference operation
         user_lut[user_snowflake] = username[0][0]
 
+
+    file_stamp_as_datetime = datetime.datetime.fromtimestamp(timestamp / 1000)
+    time_diff = file_stamp_as_datetime - call_start_time[0][0]
+
     file_dict[file] = dict(
         user=user_lut[user_snowflake], 
-        real_date=datetime.datetime.fromtimestamp(timestamp / 1000),
-        seconds_from_starttime=(datetime.datetime.fromtimestamp(timestamp / 1000) - call_start_time[0][0]).milliseconds
+        real_date=file_stamp_as_datetime,
+        milliseconds_from_starttime=int((time_diff.seconds * 1000) + (time_diff.microseconds / 1000))
     )
 
 pprint(file_dict)
