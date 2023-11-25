@@ -42,7 +42,7 @@ mydb = mysql.connector.connect(
 
 cursor = mydb.cursor()
 
-cursor.execute("SELECT call_start_time FROM call_states WHERE call_id = %d", (int(args.callid)))
+cursor.execute("SELECT call_start_time FROM call_states WHERE call_id = %d", (args.callid,))
 
 call_start_time = cursor.fetchall()
 
