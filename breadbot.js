@@ -122,7 +122,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 					receiver.subscribe(user_id, {
 						end: {
 							behavior: EndBehaviorType.AfterSilence,
-							duration: 1000
+							duration: 2500
 						}
 					})
 					.pipe(new prism.opus.OggLogicalBitstream({

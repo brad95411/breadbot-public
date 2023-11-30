@@ -4,11 +4,15 @@ import json
 import os
 import sys
 import datetime
+import subprocess
+import random
+import string
 from pprint import pprint
 
 argument_parser = argparse.ArgumentParser(description="BreadMixer is used to combine media from Discord Voice Calls")
 argument_parser.add_argument("callid", help="The call id that needs to be mixed")
 argument_parser.add_argument("config", help="The BreadBot config file location")
+argument_parser.add_argument("-f", "--filespercycle", help="The number of files to combine per run of ffmpeg", default=50)
 
 args = argument_parser.parse_args()
 
@@ -78,11 +82,84 @@ for file in os.listdir(os.path.join(json_config["media_voice_folder"], args.call
     file_stamp_as_datetime = datetime.datetime.fromtimestamp(timestamp / 1000)
     time_diff = file_stamp_as_datetime - call_start_time[0][0]
 
-    file_dict[file] = dict(
+    file_dict[os.path.join(json_config["media_voice_folder"], args.callid, file)] = dict(
         user=user_lut[user_snowflake], 
         real_date=file_stamp_as_datetime,
         milliseconds_from_starttime=int((time_diff.seconds * 1000) + (time_diff.microseconds / 1000))
     )
 
-pprint(file_dict)
+file_dict_items = [(k, v) for k, v in file_dict.items()].sort(key=lambda a: a[1]["milliseconds_from_starttime"])
+
+list_of_final_merges = []
+
+for i in range(0, len(file_dict_items), args.filespercycle):
+    input_list = []
+    filter_list = []
+
+    next_endpoint = i + 50 if i + 50 <= len(file_dict_items) else len(file_dict_items)
+
+    for j in range(i, next_endpoint, 1):
+        input_list.append(file_dict_items[j][0])
+        filter_list.append("[{inputid}]adelay={delay}|{delay}[a{inputid}]".format(
+            inputid = j - i,
+            delay = file_dict_items[j][1]["milliseconds_from_starttime"]
+        ))
+
+    command_list = ["ffmpeg"]
+
+    for input in input_list:
+        command_list.append("-i")
+        command_list.append(input)
+
+    command_list.append("-filter_complex")
+
+    filter_string = "\""
+    filter_string = filter_string + ';'.join(filter_list)
+    filter_string = filter_string + ";"
+
+    for j in range(i, next_endpoint, 1):
+        filter_string = filter_string + "[a{inputid}]".format(inputid=j - i)
+
+    filter_string = "amix=inputs={input_count}:normalize=0[a]\"".format(input_count = next_endpoint - i)
+
+    command_list.append(filter_string)
+    command_list.append("-map")
+    command_list.append("\"[a]\"")
+
+    output_file_name = "intermediate-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=10)) + ".mp3"
+
+    list_of_final_merges.append(output_file_name)
+
+    command_list.append(output_file_name)
+
+    ffmpeg_process = subprocess.Popen(command_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    stdout, stderr = ffmpeg_process.communicate()
+
+    if (ffmpeg_process.returncode != 0):
+        print("The ffmpeg process failed")
+        print(stdout)
+        print(stderr)
+        sys.exit(5)
+
+final_command_list = ["ffmpeg"]
+
+for file in list_of_final_merges:
+    final_command_list.append("-i")
+    final_command_list.append(file)
+
+final_command_list.append("-filter_complex")
+
+filter_string = "\""
+
+for i in range(len(list_of_final_merges)):
+    filter_string = filter_string + "[a{inputid}]".format(inputid=i)
+
+filter_string = filter_string + "amix=inputs={input_count}:normalize=0[a];[a]volume=3[boosted]\"".format(input_count=len(list_of_final_merges))
+
+final_command_list.append(filter_string)
+final_command_list.append("-map")
+final_command_list.append("\"[boosted]\"")
+final_command_list.append("output.mp3")
+
 
