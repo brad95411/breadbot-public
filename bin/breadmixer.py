@@ -7,6 +7,7 @@ import datetime
 import subprocess
 import random
 import string
+from txtai.pipeline import Transcription
 from pprint import pprint
 
 argument_parser = argparse.ArgumentParser(description="BreadMixer is used to combine media from Discord Voice Calls")
@@ -57,33 +58,17 @@ if len(call_start_time) == 0:
     sys.exit(3)
 
 file_dict = {}
-user_lut = {}
 
 for file in os.listdir(os.path.join(json_config["media_voice_folder"], args.callid)):
     file_name_no_ext = file.split('.')[0]
     timestamp = int(file_name_no_ext.split('-')[0])
     user_snowflake = file_name_no_ext.split('-')[1]
 
-    if not user_snowflake in user_lut:
-        cursor.execute("SELECT user_name FROM users WHERE user_snowflake = %s", [user_snowflake])
-
-        username = cursor.fetchall()
-
-        if len(username) == 0:
-            print('The user snowflake {snowflake} is not present in the DB'.format(snowflake=user_snowflake))
-
-            sys.exit(4)
-
-        # In this instance you have to unwrap both the result list and the result tuple, 
-        # which creates the obnoxious 0,0 double dereference operation
-        user_lut[user_snowflake] = username[0][0]
-
-
     file_stamp_as_datetime = datetime.datetime.fromtimestamp(timestamp / 1000)
     time_diff = file_stamp_as_datetime - call_start_time[0][0]
 
     file_dict[os.path.join(json_config["media_voice_folder"], args.callid, file)] = dict(
-        user=user_lut[user_snowflake], 
+        user=user_snowflake, 
         real_date=file_stamp_as_datetime,
         milliseconds_from_starttime=int((time_diff.seconds * 1000) + (time_diff.microseconds / 1000))
     )
@@ -126,7 +111,11 @@ for i in range(0, len(file_dict_items), args.filespercycle):
     command_list.append("-map")
     command_list.append("\"[a]\"")
 
-    output_file_name = "intermediate-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=10)) + ".mp3"
+    output_file_name = os.path.join(
+        json_config["media_voice_folder"],
+        args.callid,
+        "intermediate-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=10)) + ".mp3"
+    )
 
     list_of_final_merges.append(output_file_name)
 
@@ -160,6 +149,29 @@ filter_string = filter_string + "amix=inputs={input_count}:normalize=0[a];[a]vol
 final_command_list.append(filter_string)
 final_command_list.append("-map")
 final_command_list.append("\"[boosted]\"")
-final_command_list.append("output.mp3")
+final_command_list.append(os.path.join(json_config["media_voice_folder"], args.callid, "output.mp3"))
 
+final_command_process = subprocess.Popen(final_command_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+stdout, stderr = final_command_process.communicate()
 
+if (final_command_process.returncode != 0):
+    print("The final ffmpeg process failed")
+    print(stdout)
+    print(stderr)
+    sys.exit(6)
+
+for file in os.listdir(os.path.join(json_config["media_voice_folder"], args.callid)):
+    if file.startswith("intermediate"):
+        os.remove(os.path.join(json_config["media_voice_folder"], args.callid, file))
+
+transcribe = Transcription("openai/whisper-base")
+
+for (k, v) in file_dict.items():
+    text = transcribe(k)
+
+    cursor.execute("INSERT INTO call_transcriptions (call_id, user_snowflake, speaking_start_time, text) VALUES (%s, %s, %s, %s)", [
+        args.callid,
+        v["user"],
+        v["real_date"],
+        text
+    ])
