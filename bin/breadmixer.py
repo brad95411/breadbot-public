@@ -86,7 +86,8 @@ for file in os.listdir(os.path.join(json_config["media_voice_folder"], args.call
         milliseconds_from_starttime=int((time_diff.seconds * 1000) + (time_diff.microseconds / 1000))
     )
 
-file_dict_items = [(k, v) for k, v in file_dict.items()].sort(key=lambda a: a[1]["milliseconds_from_starttime"])
+file_dict_items = [(k, v) for k, v in file_dict.items()]
+file_dict_items.sort(key=lambda a: a[1]["milliseconds_from_starttime"])
 
 if args.verbose:
     print("Collected files: ")
