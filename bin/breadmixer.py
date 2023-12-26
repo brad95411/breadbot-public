@@ -14,8 +14,12 @@ argument_parser = argparse.ArgumentParser(description="BreadMixer is used to com
 argument_parser.add_argument("callid", help="The call id that needs to be mixed")
 argument_parser.add_argument("config", help="The BreadBot config file location")
 argument_parser.add_argument("-f", "--filespercycle", help="The number of files to combine per run of ffmpeg", default=50)
+argument_parser.add_argument("-v", "--verbose", help="Make the script tell you more about what it's doing", action="store_true")
 
 args = argument_parser.parse_args()
+
+if args.verbose:
+    print("Checking config file")
 
 if not os.path.exists(args.config):
     print('The file path {path} does not exist'.format(path=args.config))
@@ -39,6 +43,9 @@ if not all([element in json_config for element in config_must_contain]):
     
     sys.exit(2)
 
+if args.verbose:
+    print("Connecting to mysql db {dbname}".format(dbname=json_config["mysql_db_name"]))
+
 mydb = mysql.connector.connect(
     host=json_config["mysql_host"],
     user=json_config["mysql_username"],
@@ -48,6 +55,9 @@ mydb = mysql.connector.connect(
 
 cursor = mydb.cursor()
 
+if args.verbose:
+    print("Checking to see if call ID {callid} exists".format(callid=args.callid))
+
 cursor.execute("SELECT call_start_time FROM call_states WHERE call_id = %s", [args.callid])
 
 call_start_time = cursor.fetchall()
@@ -56,6 +66,9 @@ if len(call_start_time) == 0:
     print('{call_id} does not exist in the database'.format(call_id=args.callid))
 
     sys.exit(3)
+
+if args.verbose:
+    print("Collecting files from {folder}".format(folder=os.path.join(json_config["media_voice_folder"], args.callid)))
 
 file_dict = {}
 
@@ -74,6 +87,10 @@ for file in os.listdir(os.path.join(json_config["media_voice_folder"], args.call
     )
 
 file_dict_items = [(k, v) for k, v in file_dict.items()].sort(key=lambda a: a[1]["milliseconds_from_starttime"])
+
+if args.verbose:
+    print("Collected files: ")
+    [print(element) for element in file_dict_items]
 
 list_of_final_merges = []
 
