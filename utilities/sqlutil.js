@@ -73,7 +73,7 @@ async function updateMessageContentIfPresent(message_snowflake, message_content,
         } else {
             return await connection_pool.query(
                 "INSERT INTO message_content_changes (message_snowflake, message_change_old_timestamp, message_change_old_content) " +
-                "SELECT message_snowflake, message_timestamp, message_content) FROM messages WHERE message_snowflake = ?;" +
+                "SELECT message_snowflake, message_timestamp, message_content FROM messages WHERE message_snowflake = ?;" +
                 "UPDATE messages SET message_timestamp = ?, message_content = ? WHERE message_snowflake = ?;",
                 [message_snowflake, message_timestamp, message_content, message_snowflake]
             ).then(([rows, fields]) => {
