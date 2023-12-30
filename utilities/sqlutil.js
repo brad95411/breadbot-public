@@ -116,7 +116,7 @@ async function registerAttachmentIfMissing(attachment_snowflake, message_snowfla
             return true
         } else {
             return await connection_pool.query(
-                "INSERT INTO (attachment_snowflake, message_snowflake, attachment_name, attachment_description, attachment_timestamp, attachment_mime_type, attachment_url) " +
+                "INSERT INTO message_attachments (attachment_snowflake, message_snowflake, attachment_name, attachment_description, attachment_timestamp, attachment_mime_type, attachment_url) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)",
                 [attachment_snowflake, message_snowflake, attachment_name, attachment_description, attachment_timestamp, attachment_mime_type, attachment_url]
             ).then(([rows, fields]) => {
