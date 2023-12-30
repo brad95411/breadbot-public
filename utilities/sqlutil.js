@@ -146,7 +146,7 @@ async function registerUserIfMissing(user_snowflake, user_name, user_displayname
 }
 
 async function registerMessage(message_snowflake, channel_snowflake, user_snowflake, message_content, message_timestamp) {
-    return connection_pool.query("INSERT INTO messages VALUES (?, ?, ?, ?, ?, 0, 0)", [message_snowflake, channel_snowflake, user_snowflake, message_content, message_timestamp]).then(([rows, fields]) => {
+    return connection_pool.query("INSERT INTO messages VALUES (?, ?, ?, ?, ?, 0)", [message_snowflake, channel_snowflake, user_snowflake, message_content, message_timestamp]).then(([rows, fields]) => {
         return true
     }).catch((error) => {
         console.log(error)
