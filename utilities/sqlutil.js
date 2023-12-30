@@ -10,7 +10,8 @@ async function buildPool() {
             user: mysql_username,
             password: mysql_password,
             database: mysql_db_name,
-            connectionLimit: 10
+            connectionLimit: 10,
+            multipleStatements: true
         }).promise()
     }
 }
