@@ -65,6 +65,69 @@ async function registerChannelIfMissing(channel_snowflake, server_snowflake, cha
     })
 }
 
+async function updateMessageContentIfPresent(message_snowflake, message_content, message_timestamp) {
+    return connection_pool.query("SELECT message_snowflake FROM messages WHERE message_snowflake = ?", [message_snowflake]).then(async ([rows, fields]) => {
+        if (rows.length == 0) {
+            console.log("Message specified doesn't exist, probably created before breadbot was here")
+            return false
+        } else {
+            return await connection_pool.query(
+                "INSERT INTO message_content_changes (message_snowflake, message_change_old_timestamp, message_change_old_content) " +
+                "SELECT message_snowflake, message_timestamp, message_content) FROM messages WHERE message_snowflake = ?;" +
+                "UPDATE messages SET message_timestamp = ?, message_content = ? WHERE message_snowflake = ?;",
+                [message_snowflake, message_timestamp, message_content, message_snowflake]
+            ).then(([rows, fields]) => {
+                return true
+            })
+        }    
+    }).catch((error) => {
+        console.log(error)
+
+        return false
+    })
+}
+
+async function markMessageDeletedIfPresent(message_snowflake) {
+    return connection_pool.query("SELECT message_snowflake FROM messages WHERE message_snowflake = ?", [message_snowflake]).then(async ([rows, fields]) => {
+        if (rows.length == 0) {
+            console.log("Message specified doesn't exists, probably created before breadbot was here")
+
+            return false
+        } else {
+            return await connection_pool.query(
+                "UPDATE messages SET message_deleted = 1 WHERE message_snowflake = ?", [message_snowflake]
+            ).then(([rows, fields]) => {
+                return true
+            })
+        }
+    }).catch((error) => {
+        console.log(error)
+
+        return false
+    })
+}
+
+async function registerAttachmentIfMissing(attachment_snowflake, message_snowflake, attachment_name, attachment_description, attachment_timestamp, attachment_mime_type, attachment_url) {
+    return connection_pool.query("SELECT attachment_snowflake FROM message_attachments WHERE attachment_snowflake = ?", [attachment_snowflake]).then(async ([rows, fields]) => {
+        if (rows.length != 0) {
+            console.log("Attachment already exists")
+
+            return true
+        } else {
+            return await connection_pool.query(
+                "INSERT INTO (attachment_snowflake, message_snowflake, attachment_name, attachment_description, attachment_timestamp, attachment_mime_type, attachment_url) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [attachment_snowflake, message_snowflake, attachment_name, attachment_description, attachment_timestamp, attachment_mime_type, attachment_url]
+            ).then(([rows, fields]) => {
+                return true
+            })
+        }
+    }).catch((error) => {
+        console.log(error)
+
+        return false
+    })
+}
 
 async function registerUserIfMissing(user_snowflake, user_name, user_displayname) {
     return connection_pool.query("SELECT * FROM users WHERE user_snowflake = ?;", [user_snowflake]).then(async ([rows, fields]) => {
@@ -194,5 +257,8 @@ module.exports = {
     getVoiceActiveUsers,
     registerNewCall,
     updateCallEndTime,
-    inCall
+    inCall,
+    updateMessageContentIfPresent,
+    markMessageDeletedIfPresent,
+    registerAttachmentIfMissing
 }

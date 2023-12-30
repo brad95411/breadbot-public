@@ -248,14 +248,60 @@ client.on(Events.MessageCreate, async message => {
 	console.log(`User OK? ${user_ok}`)
 
 	if (channel_ok && user_ok) {
-		sqlutil.registerMessage(message.id, message.channelId, message.author.id, message.content, message.createdAt).then(message_add => {
+		await sqlutil.registerMessage(message.id, message.channelId, message.author.id, message.content, message.createdAt).then(async message_add => {
 			if(message_add) {
 				console.log("Message Added")
+
+				if (message.attachments.size != 0) {
+					const all_attachments = message.attachments.map(attachment => sqlutil.registerAttachmentIfMissing(
+						attachment.id,
+						message.id,
+						attachment.name,
+						attachment.description,
+						message.createdAt,
+						attachment.contentType,
+						attachment.url
+					))
+			
+					await Promise.all(all_attachments).catch((error) => {
+						console.log(error)
+					})
+				}
 			} else {
 				console.log("Failed to log message")
 			}
 		})
 	}
+})
+
+client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
+	console.log("Message Update Fired")
+	console.log(`Old Message Snowflake: ${oldMessage.id}`)
+	console.log(`New Message Snowflake: ${newMessage.id}`)
+	
+	await sqlutil.updateMessageContentIfPresent(newMessage.id, newMessage.content, newMessage.editedAt).then(async (updated) => {
+		if (updated) {
+			if (newMessage.attachments.size != 0) {
+				const all_attachments = newMessage.attachments.map(attachment => sqlutil.registerAttachmentIfMissing(
+					attachment.id,
+					newMessage.id,
+					attachment.name,
+					attachment.description,
+					newMessage.editedAt,
+					attachment.contentType,
+					attachment.url
+				))
+		
+				await Promise.all(all_attachments).catch((error) => {
+					console.log(error)
+				})
+			}
+		}
+	})
+})
+
+client.on(Events.MessageDelete, async deletedMessage => {
+	await sqlutil.markMessageDeletedIfPresent(deletedMessage.id)
 })
 
 client.once(Events.ClientReady, c => {
