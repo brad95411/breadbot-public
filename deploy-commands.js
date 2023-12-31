@@ -32,7 +32,7 @@ const commandFiles = allFiles.filter(file => file.endsWith('.js'));
 // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
 for (const file of commandFiles) {
 	const command = require(`${file}`);
-	if ('data' in command && 'execute' in command) {
+	if ('enabled' in command && command.enabled && 'data' in command && 'execute' in command) {
 		commands.push(command.data.toJSON());
 	}
 	else {
