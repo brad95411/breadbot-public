@@ -26,29 +26,41 @@ const getAllFiles = function(directoryPath, arrayOfFiles) {
 	return arrayOfFiles;
 };
 
-const allFiles = [];
-getAllFiles('.' + path.sep + 'commands', allFiles);
-
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates] });
 
 client.commands = new Collection();
 
-const commandFiles = allFiles.filter(file => file.endsWith('.js'));
+//const commandFiles = allFiles.filter(file => file.endsWith('.js'));
 
 var activeCalls = []
 
+getAllFiles('.' + path.sep + 'commands', [])
+	.filter(file => file.endsWith('.js'))
+	.forEach(file => {
+		const command = require(file);
+
+		if ('enabled' in command && command.enabled && 'data' in command && 'execute' in command) {
+			client.commands.set(command.data.name, command);
+			console.log(`[INFO] Loaded command at ${file}`);
+		}
+		else {
+			console.log(`[WARNING] The command at ${file} is missing a required "data" or "execute" property or is not enabled.`);
+		}
+	});
+
+/*
 for (const file of commandFiles) {
 	const command = require(file);
 
-	if ('data' in command && 'execute' in command) {
+	if ('enabled' in command && command.enabled && 'data' in command && 'execute' in command) {
 		client.commands.set(command.data.name, command);
 		console.log(`[INFO] Loaded command at ${file}`);
 	}
 	else {
-		console.log(`[WARNING] The command at ${file} is missing a required "data" or "execute" property.`);
+		console.log(`[WARNING] The command at ${file} is missing a required "data" or "execute" property or is not enabled.`);
 	}
 }
-
+*/
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
 
@@ -305,7 +317,7 @@ client.on(Events.MessageDelete, async deletedMessage => {
 })
 
 client.once(Events.ClientReady, c => {
-	console.log(`Ready! Logged in as ${c.user.tag}`);
+	console.log(`Ready! Logged in as ${c.user.tag} - ${c.user.id}`);
 });
 
 client.login(token);
