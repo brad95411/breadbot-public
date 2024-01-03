@@ -139,6 +139,10 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 					.pipe(fs.createWriteStream(media_voice_folder + path.sep + newCallID + path.sep + `${Date.now()}-${user_id}.ogg`))
 
 				})
+
+				receiver.speaking.on("end", (user_id) => {
+					console.log(`User ${user_id} stopped speaking`)
+				})
 			} catch (error) {
 				console.warn(error)
 			}
