@@ -30,8 +30,6 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 
 client.commands = new Collection();
 
-//const commandFiles = allFiles.filter(file => file.endsWith('.js'));
-
 var activeCalls = []
 
 getAllFiles('.' + path.sep + 'commands', [])
@@ -48,19 +46,6 @@ getAllFiles('.' + path.sep + 'commands', [])
 		}
 	});
 
-/*
-for (const file of commandFiles) {
-	const command = require(file);
-
-	if ('enabled' in command && command.enabled && 'data' in command && 'execute' in command) {
-		client.commands.set(command.data.name, command);
-		console.log(`[INFO] Loaded command at ${file}`);
-	}
-	else {
-		console.log(`[WARNING] The command at ${file} is missing a required "data" or "execute" property or is not enabled.`);
-	}
-}
-*/
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
 
@@ -101,6 +86,10 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 	console.log("Voice State Update Fired")
 
 	if (oldState.channel == null && newState.channel != null) {
+		if (newState.member.id == client.user.id) {
+			return //If the user is breadbot, ignore and exit
+		}
+
 		console.log(`\tChannel Join Detected ${newState.guild.id} - ${newState.channelId} - ${newState.member.id}`)
 
 		var existingCallID = await sqlutil.inCall(newState.guild.id, newState.channelId)
@@ -152,102 +141,43 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			} catch (error) {
 				console.warn(error)
 			}
-
-			/*console.log(newState.guild.channels.cache)
-
-			const voiceChannel = newState.guild.channels.cache
-									.filter(c => c.type === "voice" || c.type === "stage")
-									.find(c => c.id === newState.channelId)
-
-			if(!voiceChannel) {
-				console.log("\tVOICE CHANNEL LOOKUP FAILED")
-				
-				return
-			}*/
-
-			/*
-			connection = newState.channel.join().then(conn => {
-				const receiver = conn.receiver
-
-				conn.on("speaking", (user, speaking) => {
-					if (speaking) {
-						console.log(`User is speaking ${user.username}`)
-
-						const audioStream = receiver.createStream(user, { mode: "pcm"})
-
-						const pathToFile = "." + path.sep + "media" + path.sep + "voice_audio" + path.sep + newCallID + `${user.id}-${Date.now()}.pcm`
-
-						audioStream.pipe(fs.createWriteStream(pathToFile))
-						audioStream.on("end", () => {
-							console.log(`User stopped speaking ${user.username}`)
-						})
-					}
-				})
-			}).catch(error => {
-				console.log(error)
-			})*/
-		}
-	} else if (oldState.channel != null && newState.channel == null ) {
-
-	}
-	/*if (oldState.channel== null && newState.channel != null) {
-		console.log(`User ${newState.member.user.username} joined channel ${newState.channel.name} in guild ${newState.guild.name}`)
-
-		var last_voice_active_users = await sqlutil.getVoiceActiveUsers(newState.guild.id, newState.channelId)
-
-		var did_update = await sqlutil.updateVoiceActiveUsers(newState.guild.id, newState.channelId, true)
-
-		if (did_update) {
-			console.log("\t Registered another user as participating in this voice channel")
-		} else {
-			console.log("\t Failed to register this user as participating in this voice channel")
 		}
 
-		var voice_active_users = await sqlutil.getVoiceActiveUsers(newState.guild.id, newState.channelId)
+		var userRegistered = await sqlutil.registerUserIfMissing(newState.member.id, newState.member.username, newState.member.displayName)
 
-		if (last_voice_active_users <= 0 && voice_active_users > 0) {
-			console.log("New call detected, getting set up")
-			var new_call_id = await sqlutil.registerNewCall(newState.guild.id, newState.channelId, new Date())
+		if (userRegistered) {
+			var markedUserInCall = await sqlutil.registerUserInCall(existingCallID, newState.member.id)
 
-			if (new_call_id != -1) {
-				console.log("New call successfully registered")
-				activeCalls[newState.guild.id.concat("|", newState.channelId)] = new_call_id
-
-				// Setup call connection for BreadBot and configure events here
-			} else {
-				console.log("Failed to generate a new call ID")
+			if (!markedUserInCall) {
+				console.log(`Something went wrong when marking user in voice call: ${newState.member.id} - ${newState.member.channelId}`)
 			}
+		} else {
+			console.log(`Something went wrong when registering user for call: ${newState.member.id} - ${newState.member.username}`)
 		}
 	} else if (oldState.channel != null && newState.channel == null) {
-		console.log(`User ${oldState.member.user.username} left channel ${oldState.channel.name} in guild ${oldState.guild.name}`)
-
-		var last_voice_active_users = await sqlutil.getVoiceActiveUsers(oldState.guild.id, oldState.channelId)
-
-		var did_update = await sqlutil.updateVoiceActiveUsers(oldState.guild.id, oldState.channelId, false)
-
-		if (did_update) {
-			console.log("\t Removed registered user as participating in this voice channel")
-		} else {
-			console.log("\t Failed to remove registered user as participating in this voice channel")
+		if (oldState.member.id == client.user.id) {
+			return //If the user is breadbot, ignore and exit
 		}
 
-		var voice_active_users = await sqlutil.getVoiceActiveUsers(oldState.guild.id, oldState.channelId)
+		console.log(`Channel Exit Detected ${oldState.guild.id} - ${oldState.channelId} - ${oldState.member.id}`)
 
-		if (last_voice_active_users > 0 && voice_active_users <= 0) {
-			console.log("End of call detected, tearing down")
-			var end_time_set = await sqlutil.updateCallEndTime(activeCalls[oldState.guild.id.concat("|", oldState.channelId)], new Date())
+		var existingCallID = await sqlutil.inCall(oldState.guild.id, newState.channelId)
 
-			if (end_time_set) {
-				console.log("Call is ending, disconnecting BreadBot")
+		console.log(`Existing call ID: ${existingCallID}`)
 
-				// Disconnect BreadBot and end connection here
+		if (existingCallID != -1) {
+			await sqlutil.deregisterUserInCall(existingCallID, oldState.member.id)
 
-				delete activeCalls[oldState.guild.id.concat("|", oldState.channelId)]
-			} else {
-				console.log("Failed to properly set the end time of the call")
+			var usersInCall = await sqlutil.getNumberUsersInCall(existingCallID)
+
+			if (usersInCall == 0) {
+				const connection = getVoiceConnection(oldState.guild.id)
+				connection.disconnect()
 			}
+		} else {
+			console.log("Couldn't find a call ID based on the guild and channel info, was Breadbot in the call?")
 		}
-	}*/
+	}
 })
 
 client.on(Events.MessageCreate, async message => {

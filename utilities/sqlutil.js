@@ -237,6 +237,36 @@ async function registerNewCall(server_snowflake, channel_snowflake, call_start_t
     })
 }
 
+async function registerUserInCall(call_id, user_snowflake) {
+    return connection_pool.query("INSERT INTO call_users (call_id, user_snowflake) VALUES (?, ?)", [call_id, user_snowflake]).then(([rows, fields]) => {
+        return true
+    }).catch((error) => {
+        console.log(error)
+
+        return false
+    })
+}
+
+async function deregisterUserInCall(call_id, user_snowflake) {
+    return connection_pool.query("DELETE FROM call_users WHERE call_id = ? AND user_snowflake = ?", [call_id, user_snowflake]).then(([rows, field]) => {
+        return true
+    }).catch((error) => {
+        console.log(error)
+
+        return false
+    })
+}
+
+async function getNumberUsersInCall(call_id) {
+    return connection_pool.query("SELECT COUNT(call_users_id) AS users_in_call FROM call_users WHERE call_id = ?", [call_id]).then(([rows, fields]) => {
+        return rows[0].users_in_call
+    }).catch((error) => {
+        console.log(error)
+
+        return -1
+    })
+}
+
 async function updateCallEndTime(call_id, call_end_time) {
     return await connection_pool.query("UPDATE call_states SET call_end_time = ? WHERE call_id = ?", [call_end_time, call_id]).then(async ([rows, fields]) => {
         return true
@@ -261,5 +291,8 @@ module.exports = {
     inCall,
     updateMessageContentIfPresent,
     markMessageDeletedIfPresent,
-    registerAttachmentIfMissing
+    registerAttachmentIfMissing,
+    registerUserInCall,
+    deregisterUserInCall,
+    getNumberUsersInCall
 }
