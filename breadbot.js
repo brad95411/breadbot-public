@@ -100,6 +100,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			console.log("\tJoining a call")
 
 			var newCallID = await sqlutil.registerNewCall(newState.guild.id, newState.channelId, new Date())
+			existingCallID = newCallID // To ensure all the stuff that happens after call creation works
 
 			console.log(`\tNext call ID ${newCallID}`)
 
@@ -149,7 +150,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			var markedUserInCall = await sqlutil.registerUserInCall(existingCallID, newState.member.id)
 
 			if (!markedUserInCall) {
-				console.log(`Something went wrong when marking user in voice call: ${newState.member.id} - ${newState.member.channelId}`)
+				console.log(`Something went wrong when marking user in voice call: ${newState.member.id} - ${newState.channelId}`)
 			}
 		} else {
 			console.log(`Something went wrong when registering user for call: ${newState.member.id} - ${newState.member.username}`)
@@ -161,7 +162,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 
 		console.log(`Channel Exit Detected ${oldState.guild.id} - ${oldState.channelId} - ${oldState.member.id}`)
 
-		var existingCallID = await sqlutil.inCall(oldState.guild.id, newState.channelId)
+		var existingCallID = await sqlutil.inCall(oldState.guild.id, oldState.channelId)
 
 		console.log(`Existing call ID: ${existingCallID}`)
 
@@ -173,6 +174,12 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			if (usersInCall == 0) {
 				const connection = getVoiceConnection(oldState.guild.id)
 				connection.disconnect()
+
+				var didUpdateEndTime = await sqlutil.updateCallEndTime(existingCallID, new Date())
+
+				if (!didUpdateEndTime) {
+					console.log(`Failed to mark call id ${existingCallID} as ended with an end date`)
+				}
 			}
 		} else {
 			console.log("Couldn't find a call ID based on the guild and channel info, was Breadbot in the call?")
