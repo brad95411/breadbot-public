@@ -231,8 +231,14 @@ client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
 	console.log("Message Update Fired")
 	console.log(`Old Message Snowflake: ${oldMessage.id}`)
 	console.log(`New Message Snowflake: ${newMessage.id}`)
+
+	var editTime = newMessage.editedAt
+
+	if (editTime == null) {
+		editTime = newMessage.createdAt
+	}
 	
-	await sqlutil.updateMessageContentIfPresent(newMessage.id, newMessage.content, newMessage.editedAt).then(async (updated) => {
+	await sqlutil.updateMessageContentIfPresent(newMessage.id, newMessage.content, editTime).then(async (updated) => {
 		if (updated) {
 			if (newMessage.attachments.size != 0) {
 				const all_attachments = newMessage.attachments.map(attachment => sqlutil.registerAttachmentIfMissing(
@@ -240,7 +246,7 @@ client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
 					newMessage.id,
 					attachment.name,
 					attachment.description,
-					newMessage.editedAt,
+					editTime,
 					attachment.contentType,
 					attachment.url
 				))
