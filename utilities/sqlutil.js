@@ -18,7 +18,7 @@ async function buildPool() {
 
 async function registerServerIfMissing(server_snowflake, server_name, server_description) {
     return connection_pool.query("SELECT * FROM servers WHERE server_snowflake = ?;", [server_snowflake]).then(async ([rows, fields]) => {
-        if (rows) {
+        if (rows.length != 0) {
             return true
         } else {
             return await connection_pool.query("INSERT INTO servers VALUES (?, ?, ?)", [server_snowflake, server_name, server_description]).then(([rows, fields]) => {
