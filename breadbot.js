@@ -59,11 +59,9 @@ getAllFiles('.' + path.sep + 'commands', [])
 
 		if ('enabled' in command && command.enabled && 'data' in command && 'execute' in command) {
 			client.commands.set(command.data.name, command);
-			//console.log(`[INFO] Loaded command at ${file}`);
 			logger.info(`Loaded command at ${file}`)
 		}
 		else {
-			//console.log(`[WARNING] The command at ${file} is missing a required "data" or "execute" property or is not enabled.`);
 			logger.warn(`The command at ${file} is missing a required "data" or "execute" property or is not enabled`)
 		}
 	});
@@ -74,7 +72,6 @@ client.on(Events.InteractionCreate, async interaction => {
 	const command = interaction.client.commands.get(interaction.commandName);
 
 	if (!command) {
-		//console.error(`No command matching ${interaction.commandName} was found.`);
 		logger.error(`No command matching ${interaction.commandName} was found`)
 		return;
 	}
@@ -83,7 +80,6 @@ client.on(Events.InteractionCreate, async interaction => {
 		await command.execute(interaction);
 	}
 	catch (error) {
-		//console.error(error);
 		logger.error(error)
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
@@ -91,18 +87,12 @@ client.on(Events.InteractionCreate, async interaction => {
 
 client.on(Events.GuildCreate, async guild => {
 	if (guild.available) {
-		//console.log('Got into a server')
-		//console.log(`The server name is ${guild.name}`)
-		//console.log(`The server description is ${guild.description}`)
-		//console.log(`The server snowflake is ${guild.id}`)
 		logger.info(`Got into a server, ${guild.name}, ${guild.id}, ${guild.description}`)
 
 		sqlutil.registerServerIfMissing(guild.id, guild.name, guild.description).then(server_added => {
 			if(server_added) {
-				//console.log(`Server Added ${guild.name}`)
 				logger.info(`Server Added ${guild.name}`)
 			} else {
-				//console.log(`Server failed to add ${guild.name}`)
 				logger.error(`Server failed to add ${guild.name}`)
 			}
 		})
@@ -110,7 +100,6 @@ client.on(Events.GuildCreate, async guild => {
 })
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
-	//console.log("Voice State Update Fired")
 	logger.info("Voice State Update Fired")
 
 	if (oldState.channel == null && newState.channel != null) {
@@ -118,25 +107,20 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			return //If the user is breadbot, ignore and exit
 		}
 
-		//console.log(`\tChannel Join Detected ${newState.guild.id} - ${newState.channelId} - ${newState.member.id}`)
 		logger.info(`Channel Join Detected ${newState.guild.id} - ${newState.channelId} - ${newState.member.id}`)
 
 		var existingCallID = await sqlutil.inCall(newState.guild.id, newState.channelId)
 
-		//console.log(`\tExisting call ID ${existingCallID}`)
 		logger.info(`Existing call ID ${existingCallID}`)
 
 		if (existingCallID == -1) {
-			//console.log("\tJoining a call")
 			logger.info("Joining a call")
 
 			var newCallID = await sqlutil.registerNewCall(newState.guild.id, newState.channelId, new Date())
 			existingCallID = newCallID // To ensure all the stuff that happens after call creation works
 
-			//console.log(`\tNext call ID ${newCallID}`)
 			logger.info(`Next call ID ${newCallID}`)
 
-			// This should always have something to do, as all callIDs should be unique
 			fs.mkdirSync(media_voice_folder + path.sep + newCallID, {recursive: true})
 
 			const connection = joinVoiceChannel({
@@ -148,7 +132,6 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			})
 
 			try {
-				// What the hell does 20e3 mean, is that supposed to be sci notation?
 				await entersState(connection, VoiceConnectionStatus.Ready, 20e3)
 				const receiver = connection.receiver
 
@@ -173,12 +156,10 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 				})
 
 				receiver.speaking.on("end", (user_id) => {
-					//console.log(`User ${user_id} stopped speaking`)
 					logger.info(`User ${user_id} stopped speaking`)
 				})
 			} catch (error) {
 				logger.error(error)
-				//console.warn(error)
 			}
 		}
 
@@ -188,11 +169,9 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			var markedUserInCall = await sqlutil.registerUserInCall(existingCallID, newState.member.id)
 
 			if (!markedUserInCall) {
-				//console.log(`Something went wrong when marking user in voice call: ${newState.member.id} - ${newState.channelId}`)
 				logger.error(`Something went wrong when marking user in voice call: ${newState.member.id} - ${newState.channelId}`)
 			}
 		} else {
-			//console.log(`Something went wrong when registering user for call: ${newState.member.id} - ${newState.member.username}`)
 			logger.error(`Something went wrong when registering user for call: ${newState.member.id} - ${newState.member.username}`)
 		}
 	} else if (oldState.channel != null && newState.channel == null) {
@@ -200,12 +179,10 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 			return //If the user is breadbot, ignore and exit
 		}
 
-		//console.log(`Channel Exit Detected ${oldState.guild.id} - ${oldState.channelId} - ${oldState.member.id}`)
 		logger.info(`Channel Exit Detected ${oldState.guild.id} - ${oldState.channelId} - ${oldState.member.id}`)
 
 		var existingCallID = await sqlutil.inCall(oldState.guild.id, oldState.channelId)
 
-		//console.log(`Existing call ID: ${existingCallID}`)
 		logger.info(`Existing call ID ${existingCallID}`)
 
 		if (existingCallID != -1) {
@@ -220,33 +197,26 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 				var didUpdateEndTime = await sqlutil.updateCallEndTime(existingCallID, new Date())
 
 				if (!didUpdateEndTime) {
-					//console.log(`Failed to mark call id ${existingCallID} as ended with an end date`)
 					logger.error(`Failed to mark call ID ${existingCallID} as ended with an end date`)
 				}
 			}
 		} else {
-			//console.log("Couldn't find a call ID based on the guild and channel info, was Breadbot in the call?")
 			logger.error("Couldn't find a call ID based on the guild and channel info, was Breadbot in the call?")
 		}
 	}
 })
 
 client.on(Events.MessageCreate, async message => {
-	//console.log("Message Create Fired")
 	console.info("Message Create Fired")
 
 	var channel_ok = await sqlutil.registerChannelIfMissing(message.channelId, message.channel.guild.id, message.channel.name)
 	var user_ok = await sqlutil.registerUserIfMissing(message.author.id, message.author.username, message.author.displayName)
-
-	//console.log(`Channel OK? ${channel_ok}`)
-	//console.log(`User OK? ${user_ok}`)
 
 	logger.info(`Channel Ok? ${channel_ok} User OK? ${user_ok}`)
 
 	if (channel_ok && user_ok) {
 		await sqlutil.registerMessage(message.id, message.channelId, message.author.id, message.content, message.createdAt).then(async message_add => {
 			if(message_add) {
-				//console.log("Message Added")
 				logger.info("Message Added")
 
 				if (message.attachments.size != 0) {
@@ -261,12 +231,10 @@ client.on(Events.MessageCreate, async message => {
 					))
 			
 					await Promise.all(all_attachments).catch((error) => {
-						//console.log(error)
 						logger.error(error)
 					})
 				}
 			} else {
-				//console.log("Failed to log message")
 				logger.error("Failed to log message")
 			}
 		})
@@ -274,10 +242,6 @@ client.on(Events.MessageCreate, async message => {
 })
 
 client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
-	//console.log("Message Update Fired")
-	//console.log(`Old Message Snowflake: ${oldMessage.id}`)
-	//console.log(`New Message Snowflake: ${newMessage.id}`)
-
 	logger.info("Message Update Fired")
 	logger.info(`Old Message Snowflake: ${oldMessage.id} New Message Snowflake: ${newMessage.id}`)
 
@@ -313,7 +277,6 @@ client.on(Events.MessageDelete, async deletedMessage => {
 })
 
 client.once(Events.ClientReady, c => {
-	//console.log(`Ready! Logged in as ${c.user.tag} - ${c.user.id}`);
 	logger.info(`Ready! Logged in as ${c.user.tag} - ${c.user.id}`)
 });
 
