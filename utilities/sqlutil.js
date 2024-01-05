@@ -55,7 +55,6 @@ async function registerServerIfMissing(server_snowflake, server_name, server_des
             })
         }
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
 
         return false
@@ -64,19 +63,16 @@ async function registerServerIfMissing(server_snowflake, server_name, server_des
 
 async function registerChannelIfMissing(channel_snowflake, server_snowflake, channel_name) {
     return connection_pool.query("SELECT * FROM channels WHERE channel_snowflake = ?;", [channel_snowflake]).then(async ([rows, fields]) => {
-        if (rows.length != 0) {
-            //console.log("Channel Already Registered")
+        if (rows.length != 0) {+
             logger.info("Channel already registered")
             return true
         } else {
-            //console.log("Channel Not Registered, registering")
             logger.info("Channel Not registered, registering")
             return await connection_pool.query("INSERT INTO channels VALUES (?, ?, ?)", [channel_snowflake, server_snowflake, channel_name]).then(([rows, fields]) => {
                 return true
             })
         }
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return false
     })
@@ -86,7 +82,6 @@ async function updateMessageContentIfPresent(message_snowflake, message_content,
     return connection_pool.query("SELECT message_snowflake FROM messages WHERE message_snowflake = ?", [message_snowflake]).then(async ([rows, fields]) => {
         if (rows.length == 0) {
             logger.info("Message specified doesn't exist, probably created before breadbot was here")
-            //console.log("Message specified doesn't exist, probably created before breadbot was here")
             return false
         } else {
             return await connection_pool.query(
@@ -99,7 +94,6 @@ async function updateMessageContentIfPresent(message_snowflake, message_content,
             })
         }    
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return false
     })
@@ -108,7 +102,6 @@ async function updateMessageContentIfPresent(message_snowflake, message_content,
 async function markMessageDeletedIfPresent(message_snowflake) {
     return connection_pool.query("SELECT message_snowflake FROM messages WHERE message_snowflake = ?", [message_snowflake]).then(async ([rows, fields]) => {
         if (rows.length == 0) {
-            //console.log("Message specified doesn't exists, probably created before breadbot was here")
             logger.info("Message specified doesn't exists, probably created before breadbot was here")
             return false
         } else {
@@ -119,7 +112,6 @@ async function markMessageDeletedIfPresent(message_snowflake) {
             })
         }
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return false
     })
@@ -128,7 +120,6 @@ async function markMessageDeletedIfPresent(message_snowflake) {
 async function registerAttachmentIfMissing(attachment_snowflake, message_snowflake, attachment_name, attachment_description, attachment_timestamp, attachment_mime_type, attachment_url) {
     return connection_pool.query("SELECT attachment_snowflake FROM message_attachments WHERE attachment_snowflake = ?", [attachment_snowflake]).then(async ([rows, fields]) => {
         if (rows.length != 0) {
-            //console.log("Attachment already exists")
             logger.info("Attachment alreaedy exists")
             return true
         } else {
@@ -141,7 +132,6 @@ async function registerAttachmentIfMissing(attachment_snowflake, message_snowfla
             })
         }
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return false
     })
@@ -157,7 +147,6 @@ async function registerUserIfMissing(user_snowflake, user_name, user_displayname
             })
         }
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return false
     })
@@ -167,23 +156,6 @@ async function registerMessage(message_snowflake, channel_snowflake, user_snowfl
     return connection_pool.query("INSERT INTO messages VALUES (?, ?, ?, ?, ?, 0)", [message_snowflake, channel_snowflake, user_snowflake, message_content, message_timestamp]).then(([rows, fields]) => {
         return true
     }).catch((error) => {
-        //console.log(error)
-        logger.error(error)
-        return false
-    })
-}
-
-async function registerVoiceChannelIfMissing(server_snowflake, channel_snowflake) {
-    return connection_pool.query("SELECT * FROM voice_channel_active_users WHERE server_snowflake = ? AND channel_snowflake = ?", [server_snowflake, channel_snowflake]).then(async ([rows, fields]) => {
-        if(rows.length != 0) {
-            return true
-        } else {
-            return await connection_pool.query("INSERT INTO voice_channel_active_users VALUES (?, ?, 0)", [server_snowflake, channel_snowflake]).then(([rows, fields]) => {
-                return true
-            })
-        }
-    }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return false
     })
@@ -197,7 +169,6 @@ async function inCall(server_snowflake, channel_snowflake) {
             return rows[0].call_id
         }
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return -1;
     })
@@ -211,7 +182,6 @@ async function registerNewCall(server_snowflake, channel_snowflake, call_start_t
             return rows.insertId
         }
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return -1;
     })
@@ -221,7 +191,6 @@ async function registerUserInCall(call_id, user_snowflake) {
     return connection_pool.query("INSERT INTO call_users (call_id, user_snowflake) VALUES (?, ?)", [call_id, user_snowflake]).then(([rows, fields]) => {
         return true
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return false
     })
@@ -231,7 +200,6 @@ async function deregisterUserInCall(call_id, user_snowflake) {
     return connection_pool.query("DELETE FROM call_users WHERE call_id = ? AND user_snowflake = ?", [call_id, user_snowflake]).then(([rows, field]) => {
         return true
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return false
     })
@@ -241,7 +209,6 @@ async function getNumberUsersInCall(call_id) {
     return connection_pool.query("SELECT COUNT(call_users_id) AS users_in_call FROM call_users WHERE call_id = ?", [call_id]).then(([rows, fields]) => {
         return rows[0].users_in_call
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return -1
     })
@@ -251,7 +218,6 @@ async function updateCallEndTime(call_id, call_end_time) {
     return await connection_pool.query("UPDATE call_states SET call_end_time = ? WHERE call_id = ?", [call_end_time, call_id]).then(async ([rows, fields]) => {
         return true
     }).catch((error) => {
-        //console.log(error)
         logger.error(error)
         return false;
     })
