@@ -123,7 +123,7 @@ for i in range(0, len(file_dict_items), args.filespercycle):
     for j in range(i, next_endpoint, 1):
         filter_string = filter_string + "[a{inputid}]".format(inputid=j - i)
 
-    filter_string = "amix=inputs={input_count}:normalize=0[a]\"".format(input_count = next_endpoint - i)
+    filter_string = filter_string + "amix=inputs={input_count}:normalize=0[a]\"".format(input_count = next_endpoint - i)
 
     command_list.append(filter_string)
     command_list.append("-map")
