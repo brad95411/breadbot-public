@@ -62,6 +62,8 @@ cursor.execute("SELECT call_start_time FROM call_states WHERE call_id = %s", [ar
 
 call_start_time = cursor.fetchall()
 
+cursor.close()
+
 if len(call_start_time) == 0:
     print('{call_id} does not exist in the database'.format(call_id=args.callid))
 
@@ -188,9 +190,11 @@ transcribe = Transcription("openai/whisper-base")
 for (k, v) in file_dict.items():
     text = transcribe(k)
 
+    cursor = mydb.cursor()
     cursor.execute("INSERT INTO call_transcriptions (call_id, user_snowflake, speaking_start_time, text) VALUES (%s, %s, %s, %s)", [
         args.callid,
         v["user"],
         v["real_date"],
         text
     ])
+    cursor.close()
