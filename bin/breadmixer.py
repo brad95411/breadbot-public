@@ -52,6 +52,7 @@ mydb = mysql.connector.connect(
     password=json_config["mysql_password"],
     database=json_config["mysql_db_name"]
 )
+mydb.autocommit = True
 
 cursor = mydb.cursor()
 
