@@ -139,9 +139,8 @@ for i in range(0, len(file_dict_items), args.filespercycle):
 
     command_list.append(output_file_name)
 
-    print(' '.join(command_list))
-
     ffmpeg_process = subprocess.Popen(command_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print(ffmpeg_process.args)
 
     stdout, stderr = ffmpeg_process.communicate()
 
