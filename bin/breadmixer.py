@@ -139,7 +139,7 @@ for i in range(0, len(file_dict_items), args.filespercycle):
 
     command_list.append(output_file_name)
 
-    ffmpeg_process = subprocess.Popen(command_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    ffmpeg_process = subprocess.Popen(' '.join(command_list), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     print(ffmpeg_process.args)
 
     stdout, stderr = ffmpeg_process.communicate()
@@ -170,7 +170,7 @@ final_command_list.append("-map")
 final_command_list.append("\"[boosted]\"")
 final_command_list.append(os.path.join(json_config["media_voice_folder"], args.callid, "output.mp3"))
 
-final_command_process = subprocess.Popen(final_command_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+final_command_process = subprocess.Popen(' '.join(final_command_list), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 stdout, stderr = final_command_process.communicate()
 
 if (final_command_process.returncode != 0):
