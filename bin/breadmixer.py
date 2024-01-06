@@ -161,7 +161,7 @@ final_command_list.append("-filter_complex")
 filter_string = "\""
 
 for i in range(len(list_of_final_merges)):
-    filter_string = filter_string + "[a{inputid}]".format(inputid=i)
+    filter_string = filter_string + "[{inputid}]".format(inputid=i)
 
 filter_string = filter_string + "amix=inputs={input_count}:normalize=0[a];[a]volume=3[boosted]\"".format(input_count=len(list_of_final_merges))
 
