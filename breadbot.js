@@ -137,30 +137,33 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 
 				if (receiver.speaking.listenerCount("start") == 0) {
 					receiver.speaking.on("start", (user_id) => {
-						receiver.subscribe(user_id, {
-							end: {
-								behavior: EndBehaviorType.AfterSilence,
-								duration: 500
-							}
-						})
-						.pipe(new prism.opus.OggLogicalBitstream({
-							opusHead: new prism.opus.OpusHead({
-								channelCount: 2,
-								sampleRate: 48000
-							}),
-							pageSizeControl: {
-								maxPackets: 10
-							}
-						}))
-						.pipe(fs.createWriteStream(media_voice_folder + path.sep + newCallID + path.sep + `${Date.now()}-${user_id}.ogg`))
-	
+						if(!receiver.subscriptions.has(user_id)) {
+							receiver.subscribe(user_id, {
+								end: {
+									behavior: EndBehaviorType.AfterSilence,
+									duration: 500
+								}
+							})
+							.pipe(new prism.opus.OggLogicalBitstream({
+								opusHead: new prism.opus.OpusHead({
+									channelCount: 2,
+									sampleRate: 48000
+								}),
+								pageSizeControl: {
+									maxPackets: 10
+								}
+							}))
+							.pipe(fs.createWriteStream(media_voice_folder + path.sep + newCallID + path.sep + `${Date.now()}-${user_id}.ogg`))
+						} else {
+							logger.warn(`Attempted to create new user subscriber for ${user_id} even though one already exists, receiver arm if statement protected against this`)
+						}
 					})
 	
 					receiver.speaking.on("end", (user_id) => {
 						logger.info(`User ${user_id} stopped speaking`)
 					})
 				} else {
-					logger.info("Attempted to create a new start and end listener for users who are speaking for some reason, receiver armor if statement protected against this")
+					logger.warn("Attempted to create a new start and end listener for users who are speaking for some reason, receiver armor if statement protected against this")
 				}
 			} catch (error) {
 				logger.error(error)
