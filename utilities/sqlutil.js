@@ -176,7 +176,7 @@ async function inCall(server_snowflake, channel_snowflake) {
 
 async function registerNewCall(server_snowflake, channel_snowflake, call_start_time) {
     return connection_pool.query("INSERT INTO call_states (server_snowflake, channel_snowflake, call_start_time, call_end_time, call_consolidated, call_transcribed, call_data_cleaned_up) VALUES (?, ?, ?, NULL, 0, 0, 0)", [server_snowflake, channel_snowflake, call_start_time]).then(async ([rows, fields]) => {
-        if (rows.length == 0) {
+        if (typeof rows.insertId === 'undefined') {
             return -1;
         } else {
             return rows.insertId
